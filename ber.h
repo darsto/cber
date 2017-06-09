@@ -4,12 +4,6 @@
  * that can be found in the LICENSE file.
  */
 
-/*
- * Copyright (c) 2017 Dariusz Stojaczyk. All Rights Reserved.
- * The following source code is released under an MIT-style license,
- * that can be found in the LICENSE file.
- */
-
 #ifndef BER_H
 #define BER_H
 
@@ -23,11 +17,11 @@ enum ber_data_type {
 };
 
 /** Encode variable-length integer */
-int ber_encode_vlint(uint8_t *buf, uint32_t num);
+uint8_t *ber_encode_vlint(uint8_t *buf, uint32_t num);
 
-int ber_encode_int(uint8_t *buf, int num);
-int ber_encode_string(uint8_t *buf, const char *str);
-int ber_encode_null(uint8_t *buf);
+uint8_t *ber_encode_int(uint8_t *buf, uint32_t num);
+uint8_t *ber_encode_string(uint8_t *buf, const char *str);
+uint8_t *ber_encode_null(uint8_t *buf);
 
 #endif //BER_H
 

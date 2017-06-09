@@ -6,15 +6,13 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <memory.h>
 #include <assert.h>
+#include <memory.h>
 #include "ber.h"
 
-int
+uint8_t *
 ber_encode_vlint(uint8_t *buf, uint32_t num)
 {
-    uint8_t *org_buf = buf;
-
     *buf-- = (uint8_t) (num & 0x7F);
     num >>= 7;
 
@@ -23,25 +21,24 @@ ber_encode_vlint(uint8_t *buf, uint32_t num)
         num >>= 7;
     }
 
-    return (int) (org_buf - buf);
+    return buf;
 }
 
-int
-ber_encode_int(uint8_t *buf, int32_t num)
+uint8_t *
+ber_encode_int(uint8_t *buf, uint32_t num)
 {
-    int len;
+    size_t len;
 
-    len = ber_encode_vlint(buf, num);
+    len = buf - ber_encode_vlint(buf, num);
     *(buf - len) = (uint8_t) len;
     *(buf - len - 1) = BER_DATA_T_INTEGER;
 
-    return len + 2;
+    return buf - len - 2;
 }
 
-int
+uint8_t *
 ber_encode_string(uint8_t *buf, const char *str)
 {
-    uint8_t *org_buf = buf;
     uint32_t str_len = (uint32_t) strlen(str);
     uint8_t str_len_len;
     uint32_t i;
@@ -69,13 +66,14 @@ ber_encode_string(uint8_t *buf, const char *str)
 
     *buf-- = BER_DATA_T_OCTET_STRING;
 
-    return (int) (org_buf - buf);
+    return buf;
 }
 
-int
-ber_encode_null(uint8_t *buf) {
+uint8_t *
+ber_encode_null(uint8_t *buf)
+{
     *buf-- = 0x00;
-    *buf = BER_DATA_T_NULL;
+    *buf-- = BER_DATA_T_NULL;
 
-    return 2;
+    return buf;
 }
