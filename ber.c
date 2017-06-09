@@ -6,7 +6,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <memory.h>
 #include <assert.h>
+#include <stdarg.h>
 #include "ber.h"
 
 uint8_t *
@@ -74,4 +76,70 @@ ber_encode_null(uint8_t *buf)
     *buf-- = BER_DATA_T_NULL;
 
     return buf;
+}
+
+struct uni_type {
+    char type;
+    union {
+        uint32_t u;
+        char *s;
+    };
+};
+
+uint8_t *
+ber_fprintf(uint8_t *out, char *fmt, ...)
+{
+    size_t fmt_len = strlen(fmt);
+    va_list args;
+    struct uni_type args_arr[128];
+    struct uni_type *args_ptr = args_arr;
+
+    if (fmt_len & 1) {
+        return NULL;
+    }
+
+    va_start(args, fmt);
+
+    while (*fmt) {
+        args_ptr->type = *++fmt;
+        switch (*fmt) {
+            case 'u':
+                args_ptr->u = va_arg(args, uint32_t);
+                break;
+            case 's':
+                args_ptr->s = va_arg(args, char *);
+                break;
+            case 'n':
+                break;
+            default:
+                return NULL;
+        }
+
+        ++fmt;
+        ++args_ptr;
+    }
+
+    va_end(args);
+
+    --args_ptr;
+    while (args_ptr >= args_arr) {
+        switch (args_ptr->type) {
+            case 'u':
+                out = ber_encode_int(out, args_ptr->u);
+                break;
+            case 's':
+                out = ber_encode_string(out, args_ptr->s, (uint32_t) strlen(args_ptr->s));
+                break;
+            case 'n':
+                out = ber_encode_null(out);
+                break;
+            default:
+                return NULL;
+        }
+
+        --args_ptr;
+    }
+
+
+    return ++out;
 }
