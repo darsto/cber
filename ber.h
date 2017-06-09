@@ -20,7 +20,7 @@ enum ber_data_type {
 uint8_t *ber_encode_vlint(uint8_t *buf, uint32_t num);
 
 uint8_t *ber_encode_int(uint8_t *buf, uint32_t num);
-uint8_t *ber_encode_string(uint8_t *buf, const char *str);
+uint8_t *ber_encode_string(uint8_t *buf, const char *str, uint32_t str_len);
 uint8_t *ber_encode_null(uint8_t *buf);
 
 #endif //BER_H
