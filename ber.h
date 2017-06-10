@@ -9,13 +9,6 @@
 
 #include <stdint.h>
 
-enum ber_data_type {
-    /* ASN.1 primitives */
-    BER_DATA_T_INTEGER = 0x02,
-    BER_DATA_T_OCTET_STRING = 0x04,
-    BER_DATA_T_NULL = 0x05,
-};
-
 /**
  * Encode variable-length unsigned 32-bit integer.
  * Note that this function is does not check against output buffer overflow.

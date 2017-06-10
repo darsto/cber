@@ -5,11 +5,17 @@
  */
 
 #include <stdio.h>
-#include <stdint.h>
 #include <memory.h>
 #include <assert.h>
 #include <stdarg.h>
 #include "ber.h"
+
+/** ASN.1 primitives */
+enum ber_data_type {
+    BER_DATA_T_INTEGER = 0x02,
+    BER_DATA_T_OCTET_STRING = 0x04,
+    BER_DATA_T_NULL = 0x05,
+};
 
 uint8_t *
 ber_encode_vlint(uint8_t *buf, uint32_t num)
@@ -139,7 +145,6 @@ ber_fprintf(uint8_t *out, char *fmt, ...)
 
         --args_ptr;
     }
-
-
+    
     return ++out;
 }
