@@ -88,11 +88,10 @@ int
 main()
 {
     uint8_t buf[1024];
-    size_t buf_len = sizeof(buf);
-    uint8_t *buf_end = buf + buf_len - 1;
+    uint8_t *buf_end = buf + sizeof(buf) - 1;
     uint8_t *out;
     
-    out = ber_fprintf(buf + buf_len - 2, "%u%u%s", 64, 103, "testing_strings_123");
-    hexdump("snmp_test_print", out, buf_end - out);
+    out = ber_fprintf(buf_end, "%u%u%s", 64, 103, "testing_strings_123");
+    hexdump("snmp_test_print", out, buf_end - out + 1);
     return 0;
 }
