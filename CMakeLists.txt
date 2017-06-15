@@ -3,5 +3,5 @@ project(ber)
 
 set(CMAKE_C_STANDARD 99)
 
-set(SOURCE_FILES main.c ber.c ber.h)
+set(SOURCE_FILES main.c ber.c ber.h snmp.c snmp.h)
 add_executable(ber ${SOURCE_FILES})
