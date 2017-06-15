@@ -18,33 +18,33 @@ enum ber_data_type {
 };
 
 uint8_t *
-ber_encode_vlint(uint8_t *buf, uint32_t num)
+ber_encode_vlint(uint8_t *out, uint32_t num)
 {
-    *buf-- = (uint8_t) (num & 0x7F);
+    *out-- = (uint8_t) (num & 0x7F);
     num >>= 7;
 
     while (num) {
-        *buf-- = (uint8_t) ((num & 0x7F) | 0x80);
+        *out-- = (uint8_t) ((num & 0x7F) | 0x80);
         num >>= 7;
     }
 
-    return buf;
+    return out;
 }
 
 uint8_t *
-ber_encode_int(uint8_t *buf, uint32_t num)
+ber_encode_int(uint8_t *out, uint32_t num)
 {
     size_t len;
 
-    len = buf - ber_encode_vlint(buf, num);
-    *(buf - len) = (uint8_t) len;
-    *(buf - len - 1) = BER_DATA_T_INTEGER;
+    len = out - ber_encode_vlint(out, num);
+    *(out - len) = (uint8_t) len;
+    *(out - len - 1) = BER_DATA_T_INTEGER;
 
-    return buf - len - 2;
+    return out - len - 2;
 }
 
 uint8_t *
-ber_encode_string(uint8_t *buf, const char *str, uint32_t str_len)
+ber_encode_string(uint8_t *out, const char *str, uint32_t str_len)
 {
     uint8_t str_len_len;
     uint32_t i;
@@ -53,35 +53,35 @@ ber_encode_string(uint8_t *buf, const char *str, uint32_t str_len)
 
     str += str_len - 1;
     for (i = 0; i < str_len; ++i) {
-        *buf-- = (uint8_t) *str--;
+        *out-- = (uint8_t) *str--;
     }
 
     if (str_len > 0x7F) { // TODO: or forced long form
-        *buf-- = (uint8_t) (str_len & 0xFF);
+        *out-- = (uint8_t) (str_len & 0xFF);
         str_len_len = 1;
 
         if (str_len > 0xFF) {
-            *buf-- = (uint8_t) ((str_len >> 8) & 0xFF);
+            *out-- = (uint8_t) ((str_len >> 8) & 0xFF);
             str_len_len = 2;
         }
 
-        *buf-- = (uint8_t) (str_len_len | 0x80);
+        *out-- = (uint8_t) (str_len_len | 0x80);
     } else {
-        *buf-- = (uint8_t) str_len;
+        *out-- = (uint8_t) str_len;
     }
 
-    *buf-- = BER_DATA_T_OCTET_STRING;
+    *out-- = BER_DATA_T_OCTET_STRING;
 
-    return buf;
+    return out;
 }
 
 uint8_t *
-ber_encode_null(uint8_t *buf)
+ber_encode_null(uint8_t *out)
 {
-    *buf-- = 0x00;
-    *buf-- = BER_DATA_T_NULL;
+    *out-- = 0x00;
+    *out-- = BER_DATA_T_NULL;
 
-    return buf;
+    return out;
 }
 
 struct uni_type {
