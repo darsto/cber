@@ -9,6 +9,22 @@
 
 #include <stdint.h>
 
+/** ASN.1 primitives */
+enum ber_data_type {
+    BER_DATA_T_INTEGER = 0x02,
+    BER_DATA_T_OCTET_STRING = 0x04,
+    BER_DATA_T_NULL = 0x05,
+};
+
+/** Data format used e.g. by ber_encode_data() */
+struct ber_data {
+    enum ber_data_type type;
+    union {
+        uint32_t u;
+        char *s;
+    };
+};
+
 /**
  * Encode variable-length unsigned 32-bit integer.
  * Note that this function is does not check against output buffer overflow.
@@ -56,6 +72,18 @@ uint8_t *ber_encode_string(uint8_t *out, const char *str, uint32_t str_len);
  * Will always be smaller than given buf param.
  */
 uint8_t *ber_encode_null(uint8_t *out);
+
+/**
+ * Encode data chain in BER.
+ * Note that this function is does not check against output buffer overflow.
+ * @param buf pointer to the **end** of the output buffer.
+ * The first encoded byte will be put in buf, next one in (buf - 1), etc.
+ * @param data_count number of following ber_data* arguments
+ * @param ... ber_data* data to be encoded
+ * @return pointer to the first byte of encoded sequence in given buffer or NULL
+ * if data parsing error occured.
+ */
+uint8_t *ber_encode_data(uint8_t *out, uint32_t data_count, ...);
 
 /**
  * Encode data in BER using fprintf-like syntax.

@@ -10,13 +10,6 @@
 #include <stdarg.h>
 #include "ber.h"
 
-/** ASN.1 primitives */
-enum ber_data_type {
-    BER_DATA_T_INTEGER = 0x02,
-    BER_DATA_T_OCTET_STRING = 0x04,
-    BER_DATA_T_NULL = 0x05,
-};
-
 uint8_t *
 ber_encode_vlint(uint8_t *out, uint32_t num)
 {
@@ -84,38 +77,70 @@ ber_encode_null(uint8_t *out)
     return out;
 }
 
-struct uni_type {
-    char type;
-    union {
-        uint32_t u;
-        char *s;
-    };
-};
+static uint8_t *
+encode_ber_data(uint8_t *out, int count, struct ber_data *data)
+{
+    for(; count >= 0; --count, --data) {
+        switch (data->type) {
+            case BER_DATA_T_INTEGER:
+                out = ber_encode_int(out, data->u);
+                break;
+            case BER_DATA_T_OCTET_STRING:
+                out = ber_encode_string(out, data->s, (uint32_t) strlen(data->s));
+                break;
+            case BER_DATA_T_NULL:
+                out = ber_encode_null(out);
+                break;
+            default:
+                return NULL;
+        }
+    }
+    
+    return out;
+}
+
+uint8_t *
+ber_encode_data(uint8_t *out, uint32_t data_count, ...)
+{
+    va_list args;
+    struct ber_data *args_arr[128];
+    int i;
+
+    va_start(args, data_count);
+    for (i = 0; i < data_count; ++i) {
+        args_arr[i] = va_arg(args, struct ber_data *);
+    }
+    --i;
+    va_end(args);
+
+    return encode_ber_data(out, i, args_arr[i]) + 1;
+}
 
 uint8_t *
 ber_fprintf(uint8_t *out, char *fmt, ...)
 {
     size_t fmt_len = strlen(fmt);
     va_list args;
-    struct uni_type args_arr[128];
-    struct uni_type *args_ptr = args_arr;
+    struct ber_data args_arr[128];
+    struct ber_data *args_ptr = args_arr;
 
     if (fmt_len & 1) {
         return NULL;
     }
 
     va_start(args, fmt);
-
     while (*fmt) {
-        args_ptr->type = *++fmt;
-        switch (*fmt) {
+        switch (*++fmt) {
             case 'u':
+                args_ptr->type = BER_DATA_T_INTEGER;
                 args_ptr->u = va_arg(args, uint32_t);
                 break;
             case 's':
+                args_ptr->type = BER_DATA_T_OCTET_STRING;
                 args_ptr->s = va_arg(args, char *);
                 break;
             case 'n':
+                args_ptr->type = BER_DATA_T_NULL;
                 break;
             default:
                 return NULL;
@@ -124,27 +149,8 @@ ber_fprintf(uint8_t *out, char *fmt, ...)
         ++fmt;
         ++args_ptr;
     }
-
+    --args_ptr;
     va_end(args);
 
-    --args_ptr;
-    while (args_ptr >= args_arr) {
-        switch (args_ptr->type) {
-            case 'u':
-                out = ber_encode_int(out, args_ptr->u);
-                break;
-            case 's':
-                out = ber_encode_string(out, args_ptr->s, (uint32_t) strlen(args_ptr->s));
-                break;
-            case 'n':
-                out = ber_encode_null(out);
-                break;
-            default:
-                return NULL;
-        }
-
-        --args_ptr;
-    }
-    
-    return ++out;
+    return encode_ber_data(out, (int) (args_ptr - args_arr), args_ptr) + 1;
 }
