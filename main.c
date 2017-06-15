@@ -100,7 +100,7 @@ main()
 
     msg_header.snmp_ver = 0;
     msg_header.community = "private";
-    msg_header.pdu_type = SNMP_PDU_GET_REQUEST;
+    msg_header.pdu_type = SNMP_DATA_T_PDU_GET_REQUEST;
     msg_header.request_id = 0x0B;
 
     varbind.value_type = SNMP_DATA_T_NULL;

@@ -18,7 +18,6 @@ snmp_encode_oid(uint8_t *out, uint32_t *oid)
     while (*oid != SNMP_MSG_OID_END) {
         ++oid;
     }
-    
     --oid;
     
     while (oid != oid_start) {
@@ -27,7 +26,6 @@ snmp_encode_oid(uint8_t *out, uint32_t *oid)
     }
 
     out = ber_encode_vlint(out + 1, *(out + 1) + 40 * *oid);
-    
     return out;
 }
 
@@ -59,7 +57,8 @@ snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header, uint32_t varbind_n
                 out = ber_encode_int(out, args_ptr->value.i);
                 break;
             case SNMP_DATA_T_OCTET_STRING:
-                out = ber_encode_string(out, args_ptr->value.s, (uint32_t) strlen(args_ptr->value.s));
+                out = ber_encode_string(out, args_ptr->value.s, 
+                                        (uint32_t) strlen(args_ptr->value.s));
                 break;
             case SNMP_DATA_T_NULL:
                 out = ber_encode_null(out);
@@ -87,7 +86,7 @@ snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header, uint32_t varbind_n
     out = ber_encode_vlint(out, (uint32_t) (out_end - out));
     *out-- = header->pdu_type;
     
-    /* the rest of snmp msg data */
+    /* writing the rest of snmp msg data */
     out = ber_encode_string(out, header->community, (uint32_t) strlen(header->community));
     out = ber_encode_int(out, header->snmp_ver);
     
