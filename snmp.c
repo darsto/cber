@@ -40,11 +40,9 @@ snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header, uint32_t varbind_n
     int i;
 
     va_start(args, varbind_num);
-
     for (i = 0; i < varbind_num; ++i) {
         args_arr[i] = va_arg(args, struct snmp_varbind *);
     }
-
     va_end(args);
     
     /* writing varbinds */
