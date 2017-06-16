@@ -28,13 +28,15 @@ uint8_t *
 ber_encode_int(uint8_t *out, uint32_t num)
 {
     uint8_t *out_end = out;
+    uint8_t len;
 
     do {
         *out-- = (uint8_t) (num & 0xFF);
         num >>= 8;
     } while (num);
 
-    *out-- = (uint8_t) ((out_end - out) & 0xFF);
+    len = (uint8_t) ((out_end - out) & 0xFF);
+    *out-- = len;
     *out-- = BER_DATA_T_INTEGER;
 
     return out;
