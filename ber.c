@@ -27,13 +27,17 @@ ber_encode_vlint(uint8_t *out, uint32_t num)
 uint8_t *
 ber_encode_int(uint8_t *out, uint32_t num)
 {
-    size_t len;
+    uint8_t *out_end = out;
 
-    len = out - ber_encode_vlint(out, num);
-    *(out - len) = (uint8_t) len;
-    *(out - len - 1) = BER_DATA_T_INTEGER;
+    do {
+        *out-- = (uint8_t) (num & 0xFF);
+        num >>= 8;
+    } while (num);
 
-    return out - len - 2;
+    *out-- = (uint8_t) ((out_end - out) & 0xFF);
+    *out-- = BER_DATA_T_INTEGER;
+
+    return out;
 }
 
 uint8_t *
@@ -95,7 +99,7 @@ encode_ber_data(uint8_t *out, int count, struct ber_data *data)
                 return NULL;
         }
     }
-    
+
     return out;
 }
 
