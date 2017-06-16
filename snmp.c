@@ -67,14 +67,14 @@ snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header, uint32_t varbind_n
         
         out = snmp_encode_oid(out, args_ptr->oid);
         out = ber_encode_vlint(out, (uint32_t) (out_prev - out));
-        *out-- = 0x06; // MIB OBJECT
+        *out-- = SNMP_DATA_T_OBJECT;
         
         out = ber_encode_vlint(out, (uint32_t) (out_prev - out));
-        *out-- = 0x30;
+        *out-- = SNMP_DATA_T_SEQUENCE;
     }
     
     out = ber_encode_vlint(out, (uint32_t) (out_end - out));
-    *out-- = 0x30;
+    *out-- = SNMP_DATA_T_SEQUENCE;
 
     /* writing pdu header */
     out = ber_encode_int(out, header->error_index);
@@ -89,7 +89,7 @@ snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header, uint32_t varbind_n
     out = ber_encode_int(out, header->snmp_ver);
     
     out = ber_encode_vlint(out, (uint32_t) (out_end - out));
-    *out = 0x30;
+    *out = SNMP_DATA_T_SEQUENCE;
 
     return out;
 }
