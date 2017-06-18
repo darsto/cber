@@ -43,9 +43,30 @@ ber_encode_int(uint8_t *out, uint32_t num)
 }
 
 uint8_t *
+ber_encode_length(uint8_t *out, uint32_t length)
+{
+    uint8_t length_bytes;
+
+    if (length > 0x7F) {
+        *out-- = (uint8_t) (length & 0xFF);
+        length_bytes = 1;
+
+        if (length > 0xFF) {
+            *out-- = (uint8_t) ((length >> 8) & 0xFF);
+            length_bytes = 2;
+        }
+
+        *out-- = (uint8_t) (length_bytes | 0x80);
+    } else {
+        *out-- = (uint8_t) length;
+    }
+    
+    return out;
+}
+
+uint8_t *
 ber_encode_string(uint8_t *out, const char *str, uint32_t str_len)
 {
-    uint8_t str_len_len;
     uint32_t i;
 
     assert(str_len <= 0xFFFF); /* Sanity check */
@@ -55,20 +76,7 @@ ber_encode_string(uint8_t *out, const char *str, uint32_t str_len)
         *out-- = (uint8_t) *str--;
     }
 
-    if (str_len > 0x7F) { // TODO: or forced long form
-        *out-- = (uint8_t) (str_len & 0xFF);
-        str_len_len = 1;
-
-        if (str_len > 0xFF) {
-            *out-- = (uint8_t) ((str_len >> 8) & 0xFF);
-            str_len_len = 2;
-        }
-
-        *out-- = (uint8_t) (str_len_len | 0x80);
-    } else {
-        *out-- = (uint8_t) str_len;
-    }
-
+    out = ber_encode_length(out, str_len);
     *out-- = BER_DATA_T_OCTET_STRING;
 
     return out;

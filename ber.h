@@ -50,6 +50,28 @@ uint8_t *ber_encode_vlint(uint8_t *out, uint32_t num);
 uint8_t *ber_encode_int(uint8_t *out, uint32_t num);
 
 /**
+ * Encode BER length.
+ * For use with user-defined types.
+ * BER uses special format of encoding length.
+ * It can be either short or long form. 
+ * For example, encoding length = 1 can be done as following:
+ * * Short form: length = 0x01
+ * * Long form: length = 0x81 0x01
+ * Short form is straightforward, it's applicable on lengths < 128.
+ * For long form, the first byte has a special meaning:
+ *  * MSB must be 1
+ *  * The rest of the bits form a number of subsequent bytes used
+ *    to encode actual length.
+ * This function will use short form when length < 128, long form otherwise.
+ * @param out pointer to the **end** of the output buffer.
+ * The first encoded byte will be put in buf, next one in (buf - 1), etc.
+ * @param length length to encode in any expected endianness
+ * @return pointer to the next empty byte in the given buffer.
+ * Will always be smaller than given buf param.
+ */
+uint8_t *ber_encode_length(uint8_t *out, uint32_t length);
+
+/**
  * Encode octet string in BER.
  * Note that this function is does not check against output buffer overflow.
  * It will write at most 3+strlen(str) bytes.
