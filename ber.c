@@ -91,16 +91,20 @@ ber_encode_null(uint8_t *out)
     return out;
 }
 
-static uint8_t *
-encode_ber_data(uint8_t *out, int count, struct ber_data *data)
+uint8_t *
+ber_encode_data(uint8_t *out, int count, struct ber_data *data)
 {
-    for(; count >= 0; --count, --data) {
-        switch (data->type) {
+    struct ber_data *data_ptr;
+    int i;
+
+    for(i = count - 1; i >= 0; --i) {
+        data_ptr = &data[i];
+        switch (data_ptr->type) {
             case BER_DATA_T_INTEGER:
-                out = ber_encode_int(out, data->u);
+                out = ber_encode_int(out, data_ptr->u);
                 break;
             case BER_DATA_T_OCTET_STRING:
-                out = ber_encode_string(out, data->s, (uint32_t) strlen(data->s));
+                out = ber_encode_string(out, data_ptr->s, (uint32_t) strlen(data_ptr->s));
                 break;
             case BER_DATA_T_NULL:
                 out = ber_encode_null(out);
@@ -114,29 +118,13 @@ encode_ber_data(uint8_t *out, int count, struct ber_data *data)
 }
 
 uint8_t *
-ber_encode_data(uint8_t *out, uint32_t data_count, ...)
-{
-    va_list args;
-    struct ber_data *args_arr[128];
-    int i;
-
-    va_start(args, data_count);
-    for (i = 0; i < data_count; ++i) {
-        args_arr[i] = va_arg(args, struct ber_data *);
-    }
-    --i;
-    va_end(args);
-
-    return encode_ber_data(out, i, args_arr[i]) + 1;
-}
-
-uint8_t *
 ber_fprintf(uint8_t *out, char *fmt, ...)
 {
     size_t fmt_len = strlen(fmt);
     va_list args;
     struct ber_data args_arr[128];
     struct ber_data *args_ptr = args_arr;
+    uint8_t *ret;
 
     if (fmt_len & 1) {
         return NULL;
@@ -166,5 +154,8 @@ ber_fprintf(uint8_t *out, char *fmt, ...)
     --args_ptr;
     va_end(args);
 
-    return encode_ber_data(out, (int) (args_ptr - args_arr), args_ptr) + 1;
+    ret = ber_encode_data(out, (int) (args_ptr - args_arr), args_arr);
+    assert(ret);
+    
+    return ret + 1;
 }

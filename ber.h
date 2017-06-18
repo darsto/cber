@@ -100,12 +100,12 @@ uint8_t *ber_encode_null(uint8_t *out);
  * Note that this function is does not check against output buffer overflow.
  * @param buf pointer to the **end** of the output buffer.
  * The first encoded byte will be put in buf, next one in (buf - 1), etc.
- * @param data_count number of following ber_data* arguments
- * @param ... ber_data* data to be encoded
+ * @param data_count number of following ber_data* items
+ * @param data pointer to array of data to be encoded
  * @return pointer to the first byte of encoded sequence in given buffer or NULL
  * if data parsing error occured.
  */
-uint8_t *ber_encode_data(uint8_t *out, uint32_t data_count, ...);
+uint8_t *ber_encode_data(uint8_t *out, int count, struct ber_data *data);
 
 /**
  * Encode data in BER using fprintf-like syntax.
