@@ -30,34 +30,28 @@ snmp_encode_oid(uint8_t *out, uint32_t *oid)
 }
 
 uint8_t *
-snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header, uint32_t varbind_num, ...)
+snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header,
+                uint32_t varbind_num, struct snmp_varbind *varbinds)
 {
     va_list args;
-    struct snmp_varbind *args_arr[32];
-    struct snmp_varbind *args_ptr;
+    struct snmp_varbind *varbind;
     uint8_t *out_end = out;
     uint8_t *out_prev_seq;
     uint8_t *out_prev;
     int i;
 
-    va_start(args, varbind_num);
-    for (i = 0; i < varbind_num; ++i) {
-        args_arr[i] = va_arg(args, struct snmp_varbind *);
-    }
-    va_end(args);
-
     /* writing varbinds */
-    for(--i; i >= 0; --i) {
-        args_ptr = args_arr[i];
+    for(i = varbind_num - 1; i >= 0; --i) {
+        varbind = &varbinds[i];
         out_prev_seq = out;
 
-        switch (args_ptr->value_type) {
+        switch (varbind->value_type) {
             case SNMP_DATA_T_INTEGER:
-                out = ber_encode_int(out, args_ptr->value.i);
+                out = ber_encode_int(out, varbind->value.i);
                 break;
             case SNMP_DATA_T_OCTET_STRING:
-                out = ber_encode_string(out, args_ptr->value.s,
-                                        (uint32_t) strlen(args_ptr->value.s));
+                out = ber_encode_string(out, varbind->value.s,
+                                        (uint32_t) strlen(varbind->value.s));
                 break;
             case SNMP_DATA_T_NULL:
                 out = ber_encode_null(out);
@@ -67,7 +61,7 @@ snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header, uint32_t varbind_n
         }
 
         out_prev = out;
-        out = snmp_encode_oid(out, args_ptr->oid);
+        out = snmp_encode_oid(out, varbind->oid);
         out = ber_encode_length(out, (uint32_t) (out_prev - out));
         *out-- = SNMP_DATA_T_OBJECT;
 

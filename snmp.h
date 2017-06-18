@@ -64,11 +64,12 @@ uint8_t *snmp_encode_oid(uint8_t *out, uint32_t *oid);
  * @param out pointer to the **end** of the output buffer.
  * The first encoded byte will be put in buf, next one in (buf - 1), etc.
  * @param header header to be encoded
- * @param varbind_num number of following snmp_varbind* arguments
- * @param ... snmp_varbind* varbinds to be encoded
+ * @param varbind_num number of following snmp_varbind* items
+ * @param varbinds pointer to array of varbinds to be encoded
  * @return pointer to the first byte of encoded sequence in given buffer or NULL
  * if varbinds parsing error occured.
  */
-uint8_t *snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header, uint32_t varbind_num, ...);
+uint8_t *snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header,
+                         uint32_t varbind_num, struct snmp_varbind *varbinds);
 
 #endif //BER_SNMP_H
