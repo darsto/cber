@@ -16,16 +16,16 @@ to_printable(int n)
     static const char *trans_table = "0123456789abcdef";
 
     return trans_table[n & 0xf];
-};
+}
 
 int
 hexdump_line(const char *data, const char *data_start, const char *data_end)
 {
-    static char buf[256] = {};
+    static char buf[256] = {0};
 
     char *buf_ptr = buf;
     int relative_addr = (int) (data - data_start);
-    int i, j;
+    size_t i, j;
 
     for (i = 0; i < 2; ++i) {
         buf_ptr[i] = ' ';
@@ -68,7 +68,7 @@ hexdump_line(const char *data, const char *data_start, const char *data_end)
 
     printf("%s\n", buf);
 
-    return i * j;
+    return (int) (i * j);
 }
 
 void
@@ -86,14 +86,14 @@ hexdump(const char *title, const void *data, size_t len)
 }
 
 int
-main()
+main(void)
 {
     uint8_t buf[1024];
     uint8_t *buf_end = buf + sizeof(buf) - 1;
     uint8_t *out;
 
-    struct snmp_msg_header msg_header = {};
-    struct snmp_varbind varbind = {};
+    struct snmp_msg_header msg_header = {0};
+    struct snmp_varbind varbind = {0};
     uint32_t oid[] = { 1, 3, 6, 1, 4, 1, 26609, 2, 1, 1, 2, 0, SNMP_MSG_OID_END };
 
     memset(buf, -1, 1024); //for debug purposes

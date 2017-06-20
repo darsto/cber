@@ -19,10 +19,10 @@ enum ber_data_type {
 /** Data format used e.g. by ber_encode_data() */
 struct ber_data {
     enum ber_data_type type;
-    union {
+    union ber_data_val {
         uint32_t u;
         char *s;
-    };
+    } value;
 };
 
 /**

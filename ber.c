@@ -101,10 +101,10 @@ ber_encode_data(uint8_t *out, int count, struct ber_data *data)
         data_ptr = &data[i];
         switch (data_ptr->type) {
             case BER_DATA_T_INTEGER:
-                out = ber_encode_int(out, data_ptr->u);
+                out = ber_encode_int(out, data_ptr->value.u);
                 break;
             case BER_DATA_T_OCTET_STRING:
-                out = ber_encode_string(out, data_ptr->s, (uint32_t) strlen(data_ptr->s));
+                out = ber_encode_string(out, data_ptr->value.s, (uint32_t) strlen(data_ptr->value.s));
                 break;
             case BER_DATA_T_NULL:
                 out = ber_encode_null(out);
@@ -135,11 +135,11 @@ ber_fprintf(uint8_t *out, char *fmt, ...)
         switch (*++fmt) {
             case 'u':
                 args_ptr->type = BER_DATA_T_INTEGER;
-                args_ptr->u = va_arg(args, uint32_t);
+                args_ptr->value.u = va_arg(args, uint32_t);
                 break;
             case 's':
                 args_ptr->type = BER_DATA_T_OCTET_STRING;
-                args_ptr->s = va_arg(args, char *);
+                args_ptr->value.s = va_arg(args, char *);
                 break;
             case 'n':
                 args_ptr->type = BER_DATA_T_NULL;
