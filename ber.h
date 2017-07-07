@@ -25,6 +25,10 @@ struct ber_data {
     } value;
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Encode variable-length unsigned 32-bit integer.
  * Note that this function is does not check against output buffer overflow.
@@ -119,5 +123,9 @@ uint8_t *ber_encode_data(uint8_t *out, int count, struct ber_data *data);
  * if fmt parsing error occured.
  */
 uint8_t *ber_fprintf(uint8_t *out, char *fmt, ...);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //BER_H

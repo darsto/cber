@@ -47,6 +47,10 @@ struct snmp_varbind {
     } value;
 };
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Encode SNMP Object IDentifier.
  * This function does not add any additional trailing zeros to the OID.
@@ -71,5 +75,9 @@ uint8_t *snmp_encode_oid(uint8_t *out, uint32_t *oid);
  */
 uint8_t *snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header,
                          uint32_t varbind_num, struct snmp_varbind *varbinds);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //BER_SNMP_H
