@@ -151,7 +151,6 @@ ber_fprintf(uint8_t *out, char *fmt, ...)
         ++fmt;
         ++args_ptr;
     }
-    --args_ptr;
     va_end(args);
 
     ret = ber_encode_data(out, (int) (args_ptr - args_arr), args_arr);
