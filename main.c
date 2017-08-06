@@ -130,6 +130,21 @@ ber_vlint_test(uint8_t *buf, uint8_t *buf_end)
     }
 }
 
+void
+ber_int_test(uint8_t *buf, uint8_t *buf_end)
+{
+    uint8_t *enc_out, *dec_out;
+    uint32_t values[] = { 42, 67, 128, 129, 179, 255, 256, 258, 400, 4096, 65536 };
+    uint32_t i, num;
+
+    for (i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
+        enc_out = ber_encode_int(buf_end, values[i]);
+        dec_out = ber_decode_int(enc_out + 1, &num);
+        assert(num == values[i]);
+        assert(dec_out == buf_end + 1);
+    }
+}
+
 int
 main(void)
 {
@@ -138,6 +153,8 @@ main(void)
 
     memset(buf, -1, 1024); //for debug purposes
     ber_vlint_test(buf, buf_end);
+    memset(buf, -1, 1024);
+    ber_int_test(buf, buf_end);
     memset(buf, -1, 1024);
     snmp_msg_test(buf, buf_end);
     memset(buf, -1, 1024);

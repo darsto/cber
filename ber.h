@@ -68,6 +68,21 @@ uint8_t *ber_decode_vlint(uint8_t *buf, uint32_t *num);
 uint8_t *ber_encode_int(uint8_t *out, uint32_t num);
 
 /**
+ * Decode BER integer.
+ * Note that this function does not check against input buffer overflow.
+ * It will read at most 6 bytes.
+ * @param buf pointer to the **beginning** of the input buffer.
+ * The first byte should be BER_DATA_T_INTEGER. However, this function
+ * does not check against it.
+ * @param num pointer to put decoded number into. It's previous value will
+ * be overwritten. In case this function return NULL, the content of num
+ * is undefined.
+ * @return pointer to the next not processed byte in the given buffer or
+ * NULL in case decoded vlint consists of more than 5 bytes.
+ */
+uint8_t *ber_decode_int(uint8_t *buf, uint32_t *num);
+
+/**
  * Encode BER length.
  * For use with user-defined types.
  * BER uses special format of encoding length.

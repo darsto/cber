@@ -63,6 +63,26 @@ ber_encode_int(uint8_t *out, uint32_t num)
 }
 
 uint8_t *
+ber_decode_int(uint8_t *buf, uint32_t *num)
+{
+    uint8_t i, len;
+
+    buf++; /* ignore ber type, assume it's integer */
+    len = *buf++;
+    if (len > 4) {
+        return NULL; /* won't fit in uint32_t */
+    }
+
+    *num = (uint32_t) (*buf++ & 0xFF);
+    for (i = 1; i < len; ++i) {
+        *num <<= 8;
+        *num |= (uint8_t) (*buf++ & 0xFF);
+    }
+
+    return buf;
+}
+
+uint8_t *
 ber_encode_length(uint8_t *out, uint32_t length)
 {
     uint8_t length_bytes;
