@@ -160,6 +160,23 @@ ber_length_test(uint8_t *buf, uint8_t *buf_end)
     }
 }
 
+void
+ber_string_test(uint8_t *buf, uint8_t *buf_end)
+{
+    uint8_t *enc_out, *dec_out;
+    const char *values[] = { "a", "ab", "test123", "testing_longer_name" };
+    const char *str;
+    uint32_t i, str_len;
+
+    for (i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
+        enc_out = ber_encode_string(buf_end, values[i], strlen(values[i]));
+        dec_out = ber_decode_cnstring(enc_out + 1, &str, &str_len);
+        assert(str_len == strlen(values[i]));
+        assert(strncmp(str, values[i], str_len) == 0);
+        assert(dec_out == buf_end + 1);
+    }
+}
+
 int
 main(void)
 {
@@ -172,6 +189,8 @@ main(void)
     ber_int_test(buf, buf_end);
     memset(buf, -1, 1024);
     ber_length_test(buf, buf_end);
+    memset(buf, -1, 1024);
+    ber_string_test(buf, buf_end);
     memset(buf, -1, 1024);
     snmp_msg_test(buf, buf_end);
     memset(buf, -1, 1024);

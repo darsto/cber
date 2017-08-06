@@ -132,8 +132,6 @@ ber_encode_string(uint8_t *out, const char *str, uint32_t str_len)
 {
     uint32_t i;
 
-    assert(str_len <= 0xFFFF); /* Sanity check */
-
     str += str_len - 1;
     for (i = 0; i < str_len; ++i) {
         *out-- = (uint8_t) *str--;
@@ -143,6 +141,20 @@ ber_encode_string(uint8_t *out, const char *str, uint32_t str_len)
     *out-- = BER_DATA_T_OCTET_STRING;
 
     return out;
+}
+
+uint8_t *
+ber_decode_cnstring(uint8_t *buf, const char **str, uint32_t *str_len)
+{
+    buf++;  /* ignore ber type, assume it's string */
+    buf = ber_decode_length(buf, str_len);
+    if (buf == NULL) {
+        return NULL;
+    }
+
+    *str = (const char *) buf;
+
+    return buf + *str_len;
 }
 
 uint8_t *
