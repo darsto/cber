@@ -104,6 +104,30 @@ ber_encode_length(uint8_t *out, uint32_t length)
 }
 
 uint8_t *
+ber_decode_length(uint8_t *buf, uint32_t *length)
+{
+    uint8_t i, length_bytes;
+
+    if ((*buf & 0x80) == 0) {
+        *length = (uint32_t) *buf++;
+        return buf;
+    }
+
+    length_bytes = (uint8_t) (*buf++ & 0x7F);
+    if (length_bytes > 4) {
+        return NULL; /* won't fit in uint32_t */
+    }
+
+    *length = (uint32_t) *buf++;
+    for (i = 1; i < length_bytes; ++i) {
+        *length <<= 8;
+        *length |= *buf++;
+    }
+
+    return buf;
+}
+
+uint8_t *
 ber_encode_string(uint8_t *out, const char *str, uint32_t str_len)
 {
     uint32_t i;
