@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <memory.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "ber.h"
 #include "snmp.h"
 
@@ -109,10 +110,19 @@ snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
 void
 ber_fprintf_test(uint8_t *buf, uint8_t *buf_end)
 {
-    uint8_t *out;
+    uint8_t *enc_out, *dec_out;
+    uint32_t num1, num2;
+    char *str = NULL;
 
-    out = ber_fprintf(buf_end, "%u%u%s", 64, 103, "testing_strings_123");
-    hexdump("ber_fprintf", out, buf_end - out + 1);
+    enc_out = ber_fprintf(buf_end, "%u%u%s", 64, 103, "testing_strings_123");
+    dec_out = ber_sscanf(enc_out, "%u%u%ms", &num1, &num2, &str);
+
+    assert(dec_out == buf_end + 1);
+    assert(num1 == 64);
+    assert(num2 == 103);
+    assert(strcmp("testing_strings_123", str) <= 0);
+
+    free(str);
 }
 
 void

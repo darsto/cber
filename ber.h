@@ -204,6 +204,23 @@ uint8_t *ber_encode_data(uint8_t *out, int count, struct ber_data *data);
  */
 uint8_t *ber_fprintf(uint8_t *out, char *fmt, ...);
 
+/**
+ * Decode BER data using sscanf-like syntax.
+ * Note that this function is does not check against input buffer overflow.
+ * @param buf pointer to the **beginning** of the input buffer.
+ * The first byte will be decoded from buf, next one from (buf + 1), etc.
+ * @param fmt c printf-like format string. It supports only format specifiers.
+ * Any detected non format specifier will cause to return with NULL.
+ * Currently supported:
+ *  * %u - integer
+ *  * %n - null
+ *  * %ms or %as - dynamically allocated string
+ * @param ... c printf-like parameters specified in fmt field
+ * @return pointer to the first byte of encoded sequence in given buffer or NULL
+ * if fmt parsing error occured.
+ */
+uint8_t *ber_sscanf(uint8_t *buf, char *fmt, ...);
+
 #ifdef __cplusplus
 }
 #endif

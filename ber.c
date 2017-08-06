@@ -239,3 +239,44 @@ ber_fprintf(uint8_t *out, char *fmt, ...)
     
     return ret + 1;
 }
+
+uint8_t *
+ber_sscanf(uint8_t *buf, char *fmt, ...)
+{
+    va_list args;
+    const char *str;
+    uint32_t str_len;
+
+    va_start(args, fmt);
+    while (*fmt) {
+        if (*fmt != '%') {
+            return NULL;
+        }
+
+        switch (*++fmt) {
+            case 'u':
+                buf = ber_decode_int(buf, va_arg(args, uint32_t *));
+                break;
+            case 'a':
+            case 'm':
+                if (*++fmt != 's') {
+                    return NULL;
+                }
+
+                buf = ber_decode_cnstring(buf, &str, &str_len);
+                *va_arg(args, char **) = strndup(str, str_len);
+                break;
+            case 'n':
+                buf = ber_decode_null(buf);
+                break;
+            default:
+                return NULL;
+        }
+
+        ++fmt;
+    }
+    va_end(args);
+
+    return buf;
+}
+
