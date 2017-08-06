@@ -85,22 +85,21 @@ ber_decode_int(uint8_t *buf, uint32_t *num)
 uint8_t *
 ber_encode_length(uint8_t *out, uint32_t length)
 {
-    uint8_t length_bytes;
+    uint8_t *out_end = out;
 
-    if (length > 0x7F) {
-        *out-- = (uint8_t) (length & 0xFF);
-        length_bytes = 1;
-
-        if (length > 0xFF) {
-            *out-- = (uint8_t) ((length >> 8) & 0xFF);
-            length_bytes = 2;
-        }
-
-        *out-- = (uint8_t) (length_bytes | 0x80);
-    } else {
+    if (length < 0x80) {
         *out-- = (uint8_t) length;
+        return out;
     }
-    
+
+    while (length) {
+        *out-- = (uint8_t) (length & 0xFF);
+        length >>= 8;
+    }
+
+    *out = (uint8_t) ((out_end - out) | 0x80);
+    out--;
+
     return out;
 }
 

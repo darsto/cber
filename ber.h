@@ -96,6 +96,8 @@ uint8_t *ber_decode_int(uint8_t *buf, uint32_t *num);
  *  * The rest of the bits form a number of subsequent bytes used
  *    to encode actual length.
  * This function will use short form when length < 128, long form otherwise.
+ * Note that this function is does not check against output buffer overflow.
+ * It will write at most 5 bytes.
  * @param out pointer to the **end** of the output buffer.
  * The first encoded byte will be put in buf, next one in (buf - 1), etc.
  * @param length length to encode in any expected endianness
@@ -107,7 +109,7 @@ uint8_t *ber_encode_length(uint8_t *out, uint32_t length);
 /**
  * Encode octet string in BER.
  * Note that this function is does not check against output buffer overflow.
- * It will write at most 3+strlen(str) bytes.
+ * It will write at most 6+strlen(str) bytes.
  * @param out pointer to the **end** of the output buffer.
  * The first encoded byte will be put in buf, next one in (buf - 1), etc.
  * @param str string to encode (pointer to the **first** char)
