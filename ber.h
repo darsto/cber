@@ -31,7 +31,7 @@ extern "C" {
 
 /**
  * Encode variable-length unsigned 32-bit integer.
- * Note that this function is does not check against output buffer overflow.
+ * Note that this function does not check against output buffer overflow.
  * It will write at most 5 bytes.
  * @param out pointer to the **end** of the output buffer.
  * The first encoded byte will be put in buf, next one in (buf - 1), etc.
@@ -40,6 +40,20 @@ extern "C" {
  * Will always be smaller than given buf pointer.
  */
 uint8_t *ber_encode_vlint(uint8_t *out, uint32_t num);
+
+/**
+ * Decode variable-length unsigned 32-bit integer.
+ * Note that this function does not check against input buffer overflow.
+ * It will read at most 5 bytes.
+ * @param buf pointer to the **beginning** of the input buffer.
+ * The first byte will be decoded from buf, next one from (buf + 1), etc.
+ * @param num pointer to put decoded number into. It's previous value will
+ * be overwritten. In case this function return NULL, the content of num
+ * is undefined.
+ * @return pointer to the next not processed byte in the given buffer or
+ * NULL in case decoded vlint consists of more than 5 bytes.
+ */
+uint8_t *ber_decode_vlint(uint8_t *buf, uint32_t *num);
 
 /**
  * Encode integer in BER.

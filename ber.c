@@ -25,6 +25,26 @@ ber_encode_vlint(uint8_t *out, uint32_t num)
 }
 
 uint8_t *
+ber_decode_vlint(uint8_t *buf, uint32_t *num)
+{
+    int i;
+
+    *num = (uint32_t) (*buf & 0x7F);
+    for (i = 0; i < 4; ++i) {
+        if ((*buf++ & 0x80) == 0) {
+            return buf;
+        }
+
+        *num <<= 7;
+        *num |= (*buf & 0x7F);
+    }
+
+    /* if 5th byte is not the last one,
+     * the vlint is too long - invalid */
+    return NULL;
+}
+
+uint8_t *
 ber_encode_int(uint8_t *out, uint32_t num)
 {
     uint8_t *out_end = out;
