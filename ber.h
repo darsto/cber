@@ -171,6 +171,15 @@ uint8_t *ber_decode_cnstring(uint8_t *buf, const char **str, uint32_t *str_len);
 uint8_t *ber_encode_null(uint8_t *out);
 
 /**
+ * Decode BER NULL.
+ * Note that this function is does not check against output buffer overflow.
+ * It will read exactly 2 bytes.
+ * @param buf pointer to the **beginning** of the input buffer.
+ * @return pointer to the next not processed byte in the given buffer.
+ */
+uint8_t *ber_decode_null(uint8_t *buf);
+
+/**
  * Encode data chain in BER.
  * Note that this function is does not check against output buffer overflow.
  * @param buf pointer to the **end** of the output buffer.

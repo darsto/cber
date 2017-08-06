@@ -167,6 +167,12 @@ ber_encode_null(uint8_t *out)
 }
 
 uint8_t *
+ber_decode_null(uint8_t *buf)
+{
+    return buf + 2;
+}
+
+uint8_t *
 ber_encode_data(uint8_t *out, int count, struct ber_data *data)
 {
     struct ber_data *data_ptr;
