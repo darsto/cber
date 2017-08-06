@@ -85,18 +85,13 @@ hexdump(const char *title, const void *data, size_t len)
     printf("}\n");
 }
 
-int
-main(void)
+void
+snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
 {
-    uint8_t buf[1024];
-    uint8_t *buf_end = buf + sizeof(buf) - 1;
-    uint8_t *out;
-
     struct snmp_msg_header msg_header = {0};
     struct snmp_varbind varbind = {0};
     uint32_t oid[] = { 1, 3, 6, 1, 4, 1, 26609, 2, 1, 1, 2, 0, SNMP_MSG_OID_END };
-
-    memset(buf, -1, 1024); //for debug purposes
+    uint8_t *out;
 
     msg_header.snmp_ver = 0;
     msg_header.community = "private";
@@ -105,11 +100,31 @@ main(void)
 
     varbind.value_type = SNMP_DATA_T_NULL;
     varbind.oid = oid;
-    
+
     out = snmp_encode_msg(buf_end, &msg_header, 1, &varbind);
     hexdump("snmp_encode_msg", out, buf_end - out + 1);
-    
+}
+
+void
+ber_fprintf_test(uint8_t *buf, uint8_t *buf_end)
+{
+    uint8_t *out;
+
     out = ber_fprintf(buf_end, "%u%u%s", 64, 103, "testing_strings_123");
     hexdump("ber_fprintf", out, buf_end - out + 1);
+}
+
+int
+main(void)
+{
+    uint8_t buf[1024];
+    uint8_t *buf_end = buf + sizeof(buf) - 1;
+
+    memset(buf, -1, 1024); //for debug purposes
+    snmp_msg_test(buf, buf_end);
+    memset(buf, -1, 1024);
+    ber_fprintf_test(buf, buf_end);
+    
+
     return 0;
 }
