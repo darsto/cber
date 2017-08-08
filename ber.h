@@ -192,6 +192,19 @@ uint8_t *ber_decode_null(uint8_t *buf);
 uint8_t *ber_encode_data(uint8_t *out, int count, struct ber_data *data);
 
 /**
+ * Decode BER data chain.
+ * Note that this function is does not check against input buffer overflow.
+ * @param buf pointer to the **beginning** of the input buffer.
+ * The first byte will be decoded from buf, next one from (buf + 1), etc.
+ * @param data_count number of following ber_data* items to decode
+ * @param data pointer to array of data to be encoded. All strings will be
+ * dynamically allocated and have to be freed by the caller.
+ * @return pointer to the next not processed byte in the given buffer or NULL
+ * in case data parsing error occured.
+ */
+uint8_t *ber_decode_data(uint8_t *out, int count, struct ber_data *data);
+
+/**
  * Encode data in BER using fprintf-like syntax.
  * Note that this function is does not check against output buffer overflow.
  * @param buf pointer to the **end** of the output buffer.

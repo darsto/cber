@@ -199,6 +199,36 @@ ber_encode_data(uint8_t *out, int count, struct ber_data *data)
 }
 
 uint8_t *
+ber_decode_data(uint8_t *out, int count, struct ber_data *data)
+{
+    struct ber_data *data_ptr;
+    const char *str;
+    int i;
+    uint32_t str_len;
+
+    for(i = 0; i < count; ++i) {
+        data_ptr = &data[i];
+        data_ptr->type = (enum ber_data_type) *out;
+        switch (data_ptr->type) {
+            case BER_DATA_T_INTEGER:
+                out = ber_decode_int(out, &data_ptr->value.u);
+                break;
+            case BER_DATA_T_OCTET_STRING:
+                out = ber_decode_cnstring(out, &str, &str_len);
+                data_ptr->value.s = strndup(str, str_len);
+                break;
+            case BER_DATA_T_NULL:
+                out = ber_decode_null(out);
+                break;
+            default:
+                return NULL;
+        }
+    }
+
+    return out;
+}
+
+uint8_t *
 ber_fprintf(uint8_t *out, char *fmt, ...)
 {
     size_t fmt_len = strlen(fmt);
