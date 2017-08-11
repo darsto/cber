@@ -108,6 +108,24 @@ snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
 }
 
 void
+snmp_oid_test(uint8_t *buf, uint8_t *buf_end)
+{
+    uint32_t oid[] = { 1, 3, 6, 1, 4, 1, 26609, 2, 1, 1, 2, 0, SNMP_MSG_OID_END };
+    uint32_t dec_oid[13];
+    uint8_t *enc_out, *dec_out;
+    uint32_t oid_len = sizeof(dec_oid) / sizeof(dec_oid[0]);
+
+    assert(sizeof(oid) == sizeof(dec_oid));
+
+    enc_out = snmp_encode_oid(buf_end, oid);
+    dec_out = snmp_decode_oid(enc_out + 1, dec_oid, &oid_len);
+
+    assert(dec_out == buf_end + 1);
+    assert(oid_len == 13);
+    assert(memcmp(oid, dec_oid, oid_len) == 0);
+}
+
+void
 ber_fprintf_test(uint8_t *buf, uint8_t *buf_end)
 {
     uint8_t *enc_out, *dec_out;
@@ -229,10 +247,11 @@ main(void)
     memset(buf, -1, 1024);
     ber_data_test(buf, buf_end);
     memset(buf, -1, 1024);
-    snmp_msg_test(buf, buf_end);
-    memset(buf, -1, 1024);
     ber_fprintf_test(buf, buf_end);
-    
+    memset(buf, -1, 1024);
+    snmp_oid_test(buf, buf_end);
+    memset(buf, -1, 1024);
+    snmp_msg_test(buf, buf_end);
 
     return 0;
 }

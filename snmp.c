@@ -34,6 +34,42 @@ snmp_encode_oid(uint8_t *out, uint32_t *oid)
 }
 
 uint8_t *
+snmp_decode_oid(uint8_t *buf, uint32_t *oid, uint32_t *oid_len)
+{
+    uint32_t *oid_start = oid;
+    uint8_t *buf_end;
+    uint32_t len;
+    div_t first;
+
+    buf++; /* ignore ber type, assume it's an object */
+    buf = ber_decode_length(buf, &len);
+    if (buf == NULL) {
+        return NULL;
+    }
+
+    buf_end = buf + len;
+
+    first = div(*buf++, 40);
+    *oid++ = (uint32_t) first.quot;
+    *oid++ = (uint32_t) first.rem;
+
+    while (buf != buf_end) {
+        --(*oid_len);
+        if (*oid_len == 0) {
+            return NULL;
+        }
+
+        buf = ber_decode_vlint(buf, oid);
+        ++oid;
+    }
+
+    *oid++ = SNMP_MSG_OID_END;
+    *oid_len = (uint32_t) (oid - oid_start);
+
+    return buf;
+}
+
+uint8_t *
 snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header,
                 uint32_t varbind_num, struct snmp_varbind *varbinds)
 {

@@ -56,11 +56,29 @@ extern "C" {
  * This function does not add any additional trailing zeros to the OID.
  * @param out pointer to the **end** of the output buffer.
  * The first encoded byte will be put in buf, next one in (buf - 1), etc.
- * @param oid pointer to array of integers forming OID terminated with SNMP_MSG_OID_END
+ * @param oid array of integers forming OID terminated with SNMP_MSG_OID_END
  * @return pointer to the next empty byte in the given buffer.
  * Will always be smaller than given buf pointer.
  */
 uint8_t *snmp_encode_oid(uint8_t *out, uint32_t *oid);
+
+/**
+ * Decode SNMP Object IDentifier from BER object.
+ * Note that this function does not check against input buffer overflow.
+ * It will read at most *oid_len * 5 + 6.
+ * @param buf pointer to the **beginning** of the input buffer.
+ * The first byte should be SNMP_DATA_T_OBJECT. However, this function
+ * does not check against it.
+ * @param oid array to be filled by this function. The OID will be terminated
+ * with SNMP_MSG_OID_END. In case this function returns NULL, the content of
+ * this param is undefined.
+ * @param oid_len pointer to max size of *oid* array. Underlying value will
+ * be replaced with the actual, decoded OID length. In case this function
+ * returns NULL, the content of this param is undefined.
+ * @return pointer to the next empty byte in the given buffer or NULL in case
+ * BER object length is invalid or malloc() failed.
+ */
+uint8_t *snmp_decode_oid(uint8_t *buf, uint32_t *oid, uint32_t *oid_len);
 
 /**
  * Encode given SNMP message (GetRequest, GetNextRequest, GetResponse, SetRequest).
