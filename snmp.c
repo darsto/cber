@@ -14,6 +14,7 @@ uint8_t *
 snmp_encode_oid(uint8_t *out, uint32_t *oid)
 {
     uint32_t *oid_start = oid;
+    uint8_t *out_start = out;
 
     while (*oid != SNMP_MSG_OID_END) {
         ++oid;
@@ -26,6 +27,9 @@ snmp_encode_oid(uint8_t *out, uint32_t *oid)
     }
 
     out = ber_encode_vlint(out + 1, *(out + 1) + 40 * *oid);
+    out = ber_encode_length(out, (uint32_t) (out_start - out));
+    *out-- = SNMP_DATA_T_OBJECT;
+
     return out;
 }
 
@@ -36,14 +40,13 @@ snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header,
     va_list args;
     struct snmp_varbind *varbind;
     uint8_t *out_end = out;
-    uint8_t *out_prev_seq;
     uint8_t *out_prev;
     int i;
 
     /* writing varbinds */
     for(i = varbind_num - 1; i >= 0; --i) {
         varbind = &varbinds[i];
-        out_prev_seq = out;
+        out_prev = out;
 
         switch (varbind->value_type) {
             case SNMP_DATA_T_INTEGER:
@@ -60,12 +63,8 @@ snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header,
                 return NULL;
         }
 
-        out_prev = out;
         out = snmp_encode_oid(out, varbind->oid);
         out = ber_encode_length(out, (uint32_t) (out_prev - out));
-        *out-- = SNMP_DATA_T_OBJECT;
-
-        out = ber_encode_length(out, (uint32_t) (out_prev_seq - out));
         *out-- = SNMP_DATA_T_SEQUENCE;
     }
 

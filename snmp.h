@@ -52,7 +52,7 @@ extern "C" {
 #endif
 
 /**
- * Encode SNMP Object IDentifier.
+ * Encode SNMP Object IDentifier as BER object.
  * This function does not add any additional trailing zeros to the OID.
  * @param out pointer to the **end** of the output buffer.
  * The first encoded byte will be put in buf, next one in (buf - 1), etc.
