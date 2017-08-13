@@ -10,6 +10,7 @@
 #include <stdint.h>
 
 #define SNMP_MSG_OID_END ((uint32_t) -1)
+#define SNMP_MSG_OID_LEN 32
 
 /** BER data types used by this SNMP library */
 enum snmp_data_type {
@@ -39,7 +40,7 @@ struct snmp_msg_header {
 
 /** Actual data in SNMP message */
 struct snmp_varbind {
-    uint32_t *oid;
+    uint32_t oid[SNMP_MSG_OID_LEN];
     enum snmp_data_type value_type;
     union snmp_varbind_val {
         uint32_t i;
@@ -93,6 +94,9 @@ uint8_t *snmp_decode_oid(uint8_t *buf, uint32_t *oid, uint32_t *oid_len);
  */
 uint8_t *snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header,
                          uint32_t varbind_num, struct snmp_varbind *varbinds);
+
+uint8_t *snmp_decode_msg(uint8_t *out, struct snmp_msg_header *header,
+                         uint32_t *varbind_num, struct snmp_varbind *varbinds);
 
 #ifdef __cplusplus
 }

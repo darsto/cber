@@ -90,21 +90,35 @@ hexdump(const char *title, const void *data, size_t len)
 void
 snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
 {
-    struct snmp_msg_header msg_header = {0};
-    struct snmp_varbind varbind = {0};
+    struct snmp_msg_header enc_header = {0};
+    struct snmp_msg_header dec_header = {0};
+    struct snmp_varbind varbind_enc = {0};
+    struct snmp_varbind varbind_dec = {0};
     uint32_t oid[] = { 1, 3, 6, 1, 4, 1, 26609, 2, 1, 1, 2, 0, SNMP_MSG_OID_END };
-    uint8_t *out;
+    uint8_t *enc_out, *dec_out;
+    uint32_t varbinds_num = 1;
 
-    msg_header.snmp_ver = 0;
-    msg_header.community = "private";
-    msg_header.pdu_type = SNMP_DATA_T_PDU_GET_REQUEST;
-    msg_header.request_id = 0x0B;
+    enc_header.snmp_ver = 0;
+    enc_header.community = "private";
+    enc_header.pdu_type = SNMP_DATA_T_PDU_GET_REQUEST;
+    enc_header.request_id = 0x0B;
 
-    varbind.value_type = SNMP_DATA_T_NULL;
-    varbind.oid = oid;
+    varbind_enc.value_type = SNMP_DATA_T_NULL;
+    memcpy(varbind_enc.oid, oid, sizeof(oid));
 
-    out = snmp_encode_msg(buf_end, &msg_header, 1, &varbind);
-    hexdump("snmp_encode_msg", out, buf_end - out + 1);
+    enc_out = snmp_encode_msg(buf_end, &enc_header, varbinds_num, &varbind_enc);
+    hexdump("snmp_encode_msg", enc_out, buf_end - enc_out + 1);
+
+    dec_out = snmp_decode_msg(enc_out, &dec_header, &varbinds_num, &varbind_dec);
+    assert(dec_out == buf_end + 1);
+    assert(enc_header.snmp_ver == dec_header.snmp_ver);
+    assert(strcmp(enc_header.community, dec_header.community) == 0);
+    assert(enc_header.pdu_type == dec_header.pdu_type);
+    assert(enc_header.request_id == dec_header.request_id);
+    assert(enc_header.error_status == dec_header.error_status);
+    assert(enc_header.error_index == dec_header.error_index);
+    assert(varbind_enc.value_type == varbind_enc.value_type);
+    assert(memcmp(varbind_enc.oid, varbind_dec.oid, sizeof(oid) / sizeof(oid[0])) == 0);
 }
 
 void
