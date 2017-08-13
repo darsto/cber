@@ -109,7 +109,7 @@ snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
     enc_out = snmp_encode_msg(buf_end, &enc_header, varbinds_num, &varbind_enc);
     hexdump("snmp_encode_msg", enc_out, buf_end - enc_out + 1);
 
-    dec_out = snmp_decode_msg(enc_out, &dec_header, &varbinds_num, &varbind_dec);
+    dec_out = snmp_decode_msg(enc_out, (uint32_t) (buf_end - enc_out + 1), &dec_header, &varbinds_num, &varbind_dec);
     assert(dec_out == buf_end + 1);
     assert(enc_header.snmp_ver == dec_header.snmp_ver);
     assert(strcmp(enc_header.community, dec_header.community) == 0);
@@ -131,8 +131,10 @@ snmp_oid_test(uint8_t *buf, uint8_t *buf_end)
 
     assert(sizeof(oid) == sizeof(dec_oid));
 
+    buf_end -= 18;
+
     enc_out = snmp_encode_oid(buf_end, oid);
-    dec_out = snmp_decode_oid(enc_out + 1, dec_oid, &oid_len);
+    dec_out = snmp_decode_oid(enc_out + 1, (uint32_t) (buf_end - enc_out), dec_oid, &oid_len);
 
     assert(dec_out == buf_end + 1);
     assert(oid_len == 13);
@@ -210,25 +212,32 @@ ber_string_test(uint8_t *buf, uint8_t *buf_end)
     const char *str;
     char *astr;
     uint8_t next;
-    uint32_t i, str_len;
+    uint32_t i, enc_method, str_len;
 
     for (i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
-        enc_out = ber_encode_string_len(buf_end, values[i], strlen(values[i]));
-        dec_out = ber_decode_string_len_buffer(enc_out + 1, &str, &str_len);
-        assert(str_len == strlen(values[i]));
-        assert(strncmp(str, values[i], str_len) == 0);
-        assert(dec_out == buf_end + 1);
+        for (enc_method = 0; enc_method < 2; ++enc_method) {
+            if (enc_method == 0) {
+                enc_out = ber_encode_string(buf_end, values[i]);
+            } else  {
+                enc_out = ber_encode_string_len(buf_end, values[i], strlen(values[i]));
+            }
 
-        dec_out = ber_decode_string_alloc(enc_out + 1, &astr);
-        assert(strlen(astr) == strlen(values[i]));
-        assert(strncmp(str, values[i], str_len) == 0);
-        assert(dec_out == buf_end + 1);
-        free(astr);
+            dec_out = ber_decode_string_len_buffer(enc_out + 1, &str, &str_len);
+            assert(str_len == strlen(values[i]));
+            assert(strncmp(str, values[i], str_len) == 0);
+            assert(dec_out == buf_end + 1);
 
-        dec_out = ber_decode_string_buffer(enc_out + 1, &str, &next);
-        assert(strlen(str) == strlen(values[i]));
-        assert(strncmp(str, values[i], str_len) == 0);
-        assert(dec_out == buf_end + 1);
+            dec_out = ber_decode_string_alloc(enc_out + 1, &astr, 128);
+            assert(strlen(astr) == strlen(values[i]));
+            assert(strncmp(str, values[i], str_len) == 0);
+            assert(dec_out == buf_end + 1);
+            free(astr);
+
+            dec_out = ber_decode_string_buffer(enc_out + 1, &str, 128, &next);
+            assert(strlen(str) == strlen(values[i]));
+            assert(strncmp(str, values[i], str_len) == 0);
+            assert(dec_out == buf_end + 1);
+        }
     }
 }
 

@@ -70,6 +70,8 @@ uint8_t *snmp_encode_oid(uint8_t *out, uint32_t *oid);
  * @param buf pointer to the **beginning** of the input buffer.
  * The first byte should be SNMP_DATA_T_OBJECT. However, this function
  * does not check against it.
+ * @param buf_len size of *buf*. If decoded OID length exceeds this value,
+ * the function will return NULL.
  * @param oid array to be filled by this function. The OID will be terminated
  * with SNMP_MSG_OID_END. In case this function returns NULL, the content of
  * this param is undefined.
@@ -79,7 +81,7 @@ uint8_t *snmp_encode_oid(uint8_t *out, uint32_t *oid);
  * @return pointer to the next empty byte in the given buffer or NULL in case
  * BER object length is invalid or malloc() failed.
  */
-uint8_t *snmp_decode_oid(uint8_t *buf, uint32_t *oid, uint32_t *oid_len);
+uint8_t *snmp_decode_oid(uint8_t *buf, uint32_t buf_len, uint32_t *oid, uint32_t *oid_len);
 
 /**
  * Encode given SNMP message (GetRequest, GetNextRequest, GetResponse, SetRequest).
@@ -95,7 +97,26 @@ uint8_t *snmp_decode_oid(uint8_t *buf, uint32_t *oid, uint32_t *oid_len);
 uint8_t *snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header,
                          uint32_t varbind_num, struct snmp_varbind *varbinds);
 
-uint8_t *snmp_decode_msg(uint8_t *out, struct snmp_msg_header *header,
+/**
+ * Decode given SNMP message (GetRequest, GetNextRequest, GetResponse, SetRequest).
+ * Trap PDU is not supported. This function will modify input buffer, further
+ * SNMP decode might not be possible.
+ * @param buf pointer to the **beginning** of the input buffer.
+ * The first byte should be SNMP_DATA_T_SEQUENCE. However, this function
+ * does not check against it. The buffer has to have at least 12 bytes and has
+ * to be at least 18 bytes bigger than *buf_len* param. That's because length
+ * check is only done occasionally when dealing with very dynamic-length data.
+ * @param buf_len max size of *buf*. If decoded msg length exceeds this value,
+ * the function will return NULL.
+ * @param header header structure to be filled with decoded data
+ * @param varbind_num pointer to max size of *varbinds* array. Underlying value
+ * will be replaced with the actual, decoded varbinds num. In case this function
+ * returns NULL, the content of this param is undefined.
+ * @param varbinds pointer to array of varbinds to be decoded. All strings will
+ * be taken directly from input buffer, without any additional allocation.
+ * @return
+ */
+uint8_t *snmp_decode_msg(uint8_t *buf, uint32_t buf_len, struct snmp_msg_header *header,
                          uint32_t *varbind_num, struct snmp_varbind *varbinds);
 
 #ifdef __cplusplus

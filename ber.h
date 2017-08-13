@@ -126,9 +126,21 @@ uint8_t *ber_decode_length(uint8_t *buf, uint32_t *length);
 uint8_t *ber_encode_string_len(uint8_t *out, const char *str, uint32_t str_len);
 
 /**
+ * Encode octet string in BER.
+ * Note that this function is does not check against output buffer overflow.
+ * It will write at most 6+strlen(str) bytes.
+ * @param out pointer to the **end** of the output buffer.
+ * The first encoded byte will be put in buf, next one in (buf - 1), etc.
+ * @param str NUL-terminated string to encode (pointer to the **first** char)
+ * @return pointer to the next empty byte in the given buffer.
+ * Will always be smaller than given buf param.
+ */
+uint8_t *ber_encode_string(uint8_t *out, const char *str);
+
+/**
  * Decode BER octet string. This function gets length and beginning of
  * the string directly from the input buffer.
- * Note that this function does not check against input buffer overflow.
+ * Note that this function does not check against input buffer overflow!
  * It will read at most 6 bytes. 7th byte is beginning of the string,
  * but it won't be dereferenced.
  * @param buf pointer to the **beginning** of the input buffer.
@@ -147,12 +159,12 @@ uint8_t *ber_decode_string_len_buffer(uint8_t *buf, const char **str, uint32_t *
 
 /**
  * Decode BER octet string.
- * Note that this function does not check against input buffer overflow.
- * It will read at most 7+strlen(str) bytes. It will modify input buffer!
+ * This function will modify input buffer!
  * Future processing of the same buffer might not be possible.
  * @param buf pointer to the **beginning** of the input buffer.
  * The first byte should be BER_DATA_T_OCTET_STRING. However, this function
- * does not check against it.
+ * does not check against it. The buffer has to be at least 7 + *maxlen*
+ * bytes big.
  * @param str pointer to the decoded string. This function will
  * set *str to point to the beginning of the string taken directly from buf.
  * The byte just after the string will be zero'ed, so that *str* is
@@ -160,28 +172,31 @@ uint8_t *ber_decode_string_len_buffer(uint8_t *buf, const char **str, uint32_t *
  * param. The string is const char*, but when the buffer changes, so will
  * this string. If this function returns NULL, the contents of *str*
  * is undefined.
+ * @param maxlen max length of decoded string. If decoded length exceeds
+ * this value, the function will return NULL.
  * @param next pointer where previous value of zero'ed byte will be written.
  * If this function returns NULL, the contents of *next* is undefined.
  * @return pointer to the just-zero'ed byte in the given buffer or NULL
  * in case decoded string length is invalid. The decoding functions do not
  * check BER type, so that returned buf can be easily decoded further.
  */
-uint8_t *ber_decode_string_buffer(uint8_t *buf, const char **str, uint8_t *next);
+uint8_t *ber_decode_string_buffer(uint8_t *buf, const char **str, uint32_t maxlen, uint8_t *next);
 
 /**
  * Decode BER octet string.
- * Note that this function does not check against input buffer overflow.
- * It will read at most 6+strlen(str) bytes.
  * @param buf pointer to the **beginning** of the input buffer.
  * The first byte should be BER_DATA_T_OCTET_STRING. However, this function
- * does not check against it.
+ * does not check against it. The buffer has to be at least 6 + *maxlen*
+ * bytes big.
  * @param str pointer to the decoded string. It will be allocated and set
- * by this function. If this function returns NULL, the contents of *str*
- * is undefined.
+ * by this function. If this function returns NULL, the *str* won't be
+ * allocated.
+ * @param maxlen max length of decoded string. If decoded length exceeds
+ * this value, the function will return NULL.
  * @return pointer to the next not processed byte in the given buffer or
  * NULL in case decoded string length is invalid or malloc() failed.
  */
-uint8_t *ber_decode_string_alloc(uint8_t *buf, char **str);
+uint8_t *ber_decode_string_alloc(uint8_t *buf, char **str, uint32_t maxlen);
 
 /**
  * Encode NULL in BER.
