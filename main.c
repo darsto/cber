@@ -144,31 +144,6 @@ ber_fprintf_test(uint8_t *buf, uint8_t *buf_end)
 }
 
 void
-ber_data_test(uint8_t *buf, uint8_t *buf_end)
-{
-    uint8_t *enc_out, *dec_out;
-    struct ber_data data[3] = {
-        { .type = BER_DATA_T_INTEGER, .value.u = 64 },
-        { .type = BER_DATA_T_INTEGER, .value.u = 103 },
-        { .type = BER_DATA_T_OCTET_STRING, .value.s = "testing_strings_123" },
-    };
-    struct ber_data dec_data[3] = {0};
-
-    enc_out = ber_encode_data(buf_end, sizeof(data) / sizeof(data[0]), data);
-    dec_out = ber_decode_data(enc_out + 1, sizeof(data) / sizeof(data[0]), dec_data);
-
-    assert(dec_out == buf_end + 1);
-    assert(dec_data[0].type == data[0].type);
-    assert(dec_data[0].value.u == data[0].value.u);
-    assert(dec_data[1].type == data[1].type);
-    assert(dec_data[1].value.u == data[1].value.u);
-    assert(dec_data[2].type == data[2].type);
-    assert(strcmp(dec_data[2].value.s, data[2].value.s) == 0);
-
-    free(dec_data[2].value.s);
-}
-
-void
 ber_vlint_test(uint8_t *buf, uint8_t *buf_end)
 {
     uint8_t *enc_out, *dec_out;
@@ -257,8 +232,6 @@ main(void)
     ber_length_test(buf, buf_end);
     memset(buf, -1, 1024);
     ber_string_test(buf, buf_end);
-    memset(buf, -1, 1024);
-    ber_data_test(buf, buf_end);
     memset(buf, -1, 1024);
     ber_fprintf_test(buf, buf_end);
     memset(buf, -1, 1024);

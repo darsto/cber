@@ -16,15 +16,6 @@ enum ber_data_type {
     BER_DATA_T_NULL = 0x05,
 };
 
-/** Data format used e.g. by ber_encode_data() */
-struct ber_data {
-    enum ber_data_type type;
-    union ber_data_val {
-        uint32_t u;
-        char *s;
-    } value;
-};
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -211,31 +202,6 @@ uint8_t *ber_encode_null(uint8_t *out);
  * @return pointer to the next not processed byte in the given buffer.
  */
 uint8_t *ber_decode_null(uint8_t *buf);
-
-/**
- * Encode data chain in BER.
- * Note that this function is does not check against output buffer overflow.
- * @param buf pointer to the **end** of the output buffer.
- * The first encoded byte will be put in buf, next one in (buf - 1), etc.
- * @param data_count number of following ber_data* items
- * @param data pointer to array of data to be encoded
- * @return pointer to the first byte of encoded sequence in given buffer or NULL
- * if data parsing error occured.
- */
-uint8_t *ber_encode_data(uint8_t *out, int count, struct ber_data *data);
-
-/**
- * Decode BER data chain.
- * Note that this function is does not check against input buffer overflow.
- * @param buf pointer to the **beginning** of the input buffer.
- * The first byte will be decoded from buf, next one from (buf + 1), etc.
- * @param data_count number of following ber_data* items to decode
- * @param data pointer to array of data to be encoded. All strings will be
- * dynamically allocated and have to be freed by the caller.
- * @return pointer to the next not processed byte in the given buffer or NULL
- * in case data parsing error occured.
- */
-uint8_t *ber_decode_data(uint8_t *out, int count, struct ber_data *data);
 
 /**
  * Encode data in BER using fprintf-like syntax.
