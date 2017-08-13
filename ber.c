@@ -8,6 +8,7 @@
 #include <memory.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include "ber.h"
 
 uint8_t *
@@ -155,6 +156,28 @@ ber_decode_cnstring(uint8_t *buf, const char **str, uint32_t *str_len)
     *str = (const char *) buf;
 
     return buf + *str_len;
+}
+
+uint8_t *
+ber_decode_astring(uint8_t *buf, char **str)
+{
+    uint32_t str_len;
+
+    buf++;  /* ignore ber type, assume it's string */
+    buf = ber_decode_length(buf, &str_len);
+    if (buf == NULL) {
+        return NULL;
+    }
+
+    *str = malloc(str_len + 1); /* +1 for NUL */
+    if (*str == NULL) {
+        return NULL;
+    }
+
+    memcpy(*str, buf, str_len);
+    (*str)[str_len] = 0;
+
+    return buf + str_len;
 }
 
 uint8_t *
