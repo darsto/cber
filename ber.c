@@ -159,6 +159,22 @@ ber_decode_cnstring(uint8_t *buf, const char **str, uint32_t *str_len)
 }
 
 uint8_t *
+ber_decode_cstring(uint8_t *buf, const char **str, uint8_t *next)
+{
+    uint32_t str_len;
+
+    buf = ber_decode_cnstring(buf, str, &str_len);
+    if (buf == NULL) {
+        return NULL;
+    }
+
+    *next = *buf;
+    *buf = 0;
+
+    return buf;
+}
+
+uint8_t *
 ber_decode_astring(uint8_t *buf, char **str)
 {
     uint32_t str_len;

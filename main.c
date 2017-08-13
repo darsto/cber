@@ -220,6 +220,7 @@ ber_string_test(uint8_t *buf, uint8_t *buf_end)
     const char *values[] = { "a", "ab", "test123", "testing_longer_name" };
     const char *str;
     char *astr;
+    uint8_t next;
     uint32_t i, str_len;
 
     for (i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
@@ -234,6 +235,11 @@ ber_string_test(uint8_t *buf, uint8_t *buf_end)
         assert(strncmp(str, values[i], str_len) == 0);
         assert(dec_out == buf_end + 1);
         free(astr);
+
+        dec_out = ber_decode_cstring(enc_out + 1, &str, &next);
+        assert(strlen(str) == strlen(values[i]));
+        assert(strncmp(str, values[i], str_len) == 0);
+        assert(dec_out == buf_end + 1);
     }
 }
 

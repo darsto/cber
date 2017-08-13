@@ -162,6 +162,28 @@ uint8_t *ber_decode_cnstring(uint8_t *buf, const char **str, uint32_t *str_len);
 /**
  * Decode BER octet string.
  * Note that this function does not check against input buffer overflow.
+ * It will read at most 7+strlen(str) bytes. It will modify input buffer!
+ * Future processing of the same buffer might not be possible.
+ * @param buf pointer to the **beginning** of the input buffer.
+ * The first byte should be BER_DATA_T_OCTET_STRING. However, this function
+ * does not check against it.
+ * @param str pointer to the decoded string. This function will
+ * set *str to point to the beginning of the string taken directly from buf.
+ * The byte just after the string will be zero'ed, so that *str* is
+ * NULL-terminated. The previous value of this byte is returned via *next*
+ * param. The string is const char*, but when the buffer changes, so will
+ * this string. If this function returns NULL, the contents of *str*
+ * is undefined.
+ * @param next pointer where previous value of zero'ed byte will be written.
+ * If this function returns NULL, the contents of *next* is undefined.
+ * @return pointer to the next not processed byte in the given buffer or
+ * NULL in case decoded vlint consists of more than 5 bytes.
+ */
+uint8_t *ber_decode_cstring(uint8_t *buf, const char **str, uint8_t *next);
+
+/**
+ * Decode BER octet string.
+ * Note that this function does not check against input buffer overflow.
  * It will read at most 6+strlen(str) bytes.
  * @param buf pointer to the **beginning** of the input buffer.
  * The first byte should be BER_DATA_T_OCTET_STRING. However, this function
