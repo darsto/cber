@@ -129,7 +129,7 @@ ber_decode_length(uint8_t *buf, uint32_t *length)
 }
 
 uint8_t *
-ber_encode_string(uint8_t *out, const char *str, uint32_t str_len)
+ber_encode_string_len(uint8_t *out, const char *str, uint32_t str_len)
 {
     uint32_t i;
 
@@ -145,7 +145,7 @@ ber_encode_string(uint8_t *out, const char *str, uint32_t str_len)
 }
 
 uint8_t *
-ber_decode_cnstring(uint8_t *buf, const char **str, uint32_t *str_len)
+ber_decode_string_len_buffer(uint8_t *buf, const char **str, uint32_t *str_len)
 {
     buf++;  /* ignore ber type, assume it's string */
     buf = ber_decode_length(buf, str_len);
@@ -159,11 +159,11 @@ ber_decode_cnstring(uint8_t *buf, const char **str, uint32_t *str_len)
 }
 
 uint8_t *
-ber_decode_cstring(uint8_t *buf, const char **str, uint8_t *next)
+ber_decode_string_buffer(uint8_t *buf, const char **str, uint8_t *next)
 {
     uint32_t str_len;
 
-    buf = ber_decode_cnstring(buf, str, &str_len);
+    buf = ber_decode_string_len_buffer(buf, str, &str_len);
     if (buf == NULL) {
         return NULL;
     }
@@ -175,7 +175,7 @@ ber_decode_cstring(uint8_t *buf, const char **str, uint8_t *next)
 }
 
 uint8_t *
-ber_decode_astring(uint8_t *buf, char **str)
+ber_decode_string_alloc(uint8_t *buf, char **str)
 {
     uint32_t str_len;
 
@@ -224,7 +224,8 @@ ber_encode_data(uint8_t *out, int count, struct ber_data *data)
                 out = ber_encode_int(out, data_ptr->value.u);
                 break;
             case BER_DATA_T_OCTET_STRING:
-                out = ber_encode_string(out, data_ptr->value.s, (uint32_t) strlen(data_ptr->value.s));
+                out = ber_encode_string_len(out, data_ptr->value.s,
+                                            (uint32_t) strlen(data_ptr->value.s));
                 break;
             case BER_DATA_T_NULL:
                 out = ber_encode_null(out);
@@ -253,7 +254,7 @@ ber_decode_data(uint8_t *out, int count, struct ber_data *data)
                 out = ber_decode_int(out, &data_ptr->value.u);
                 break;
             case BER_DATA_T_OCTET_STRING:
-                out = ber_decode_cnstring(out, &str, &str_len);
+                out = ber_decode_string_len_buffer(out, &str, &str_len);
                 data_ptr->value.s = strndup(str, str_len);
                 break;
             case BER_DATA_T_NULL:
@@ -332,7 +333,7 @@ ber_sscanf(uint8_t *buf, char *fmt, ...)
                     return NULL;
                 }
 
-                buf = ber_decode_cnstring(buf, &str, &str_len);
+                buf = ber_decode_string_len_buffer(buf, &str, &str_len);
                 *va_arg(args, char **) = strndup(str, str_len);
                 break;
             case 'n':

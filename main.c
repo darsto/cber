@@ -224,19 +224,19 @@ ber_string_test(uint8_t *buf, uint8_t *buf_end)
     uint32_t i, str_len;
 
     for (i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
-        enc_out = ber_encode_string(buf_end, values[i], strlen(values[i]));
-        dec_out = ber_decode_cnstring(enc_out + 1, &str, &str_len);
+        enc_out = ber_encode_string_len(buf_end, values[i], strlen(values[i]));
+        dec_out = ber_decode_string_len_buffer(enc_out + 1, &str, &str_len);
         assert(str_len == strlen(values[i]));
         assert(strncmp(str, values[i], str_len) == 0);
         assert(dec_out == buf_end + 1);
 
-        dec_out = ber_decode_astring(enc_out + 1, &astr);
+        dec_out = ber_decode_string_alloc(enc_out + 1, &astr);
         assert(strlen(astr) == strlen(values[i]));
         assert(strncmp(str, values[i], str_len) == 0);
         assert(dec_out == buf_end + 1);
         free(astr);
 
-        dec_out = ber_decode_cstring(enc_out + 1, &str, &next);
+        dec_out = ber_decode_string_buffer(enc_out + 1, &str, &next);
         assert(strlen(str) == strlen(values[i]));
         assert(strncmp(str, values[i], str_len) == 0);
         assert(dec_out == buf_end + 1);

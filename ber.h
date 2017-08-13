@@ -48,7 +48,7 @@ uint8_t *ber_encode_vlint(uint8_t *out, uint32_t num);
  * @param buf pointer to the **beginning** of the input buffer.
  * The first byte will be decoded from buf, next one from (buf + 1), etc.
  * @param num pointer to put decoded number into. It's previous value will
- * be overwritten. In case this function return NULL, the content of num
+ * be overwritten. In case this function returns NULL, the content of num
  * is undefined.
  * @return pointer to the next not processed byte in the given buffer or
  * NULL in case decoded vlint consists of more than 5 bytes.
@@ -58,7 +58,7 @@ uint8_t *ber_decode_vlint(uint8_t *buf, uint32_t *num);
 /**
  * Encode integer in BER.
  * Note that this function is does not check against output buffer overflow.
- * It will write at most 7 bytes.
+ * It will write at most 6 bytes.
  * @param out pointer to the **end** of the output buffer.
  * The first encoded byte will be put in buf, next one in (buf - 1), etc.
  * @param num number to encode in any expected endianness
@@ -75,10 +75,10 @@ uint8_t *ber_encode_int(uint8_t *out, uint32_t num);
  * The first byte should be BER_DATA_T_INTEGER. However, this function
  * does not check against it.
  * @param num pointer to put decoded number into. It's previous value will
- * be overwritten. In case this function return NULL, the content of num
+ * be overwritten. In case this function returns NULL, the content of num
  * is undefined.
  * @return pointer to the next not processed byte in the given buffer or
- * NULL in case decoded vlint consists of more than 5 bytes.
+ * NULL in case if integer length is bigger than 4 bytes.
  */
 uint8_t *ber_decode_int(uint8_t *buf, uint32_t *num);
 
@@ -108,26 +108,16 @@ uint8_t *ber_encode_length(uint8_t *out, uint32_t length);
 
 /**
  * Decode BER length.
- * For use with user-defined types.
- * BER uses special format of encoding length.
- * It can be either short or long form.
- * For example, encoding length = 1 can be done as following:
- * * Short form: length = 0x01
- * * Long form: length = 0x81 0x01
- * Short form is straightforward, it's applicable on lengths < 128.
- * For long form, the first byte has a special meaning:
- *  * MSB must be 1
- *  * The rest of the bits form a number of subsequent bytes used
- *    to encode actual length.
+ * @see See ber_encode_length for details on BER length.
  * Note that this function does not check against input buffer overflow.
  * It will read at most 5 bytes.
  * @param buf pointer to the **beginning** of the input buffer.
  * The first byte will be decoded from buf, next one from (buf + 1), etc.
  * @param length pointer to put decoded length into. It's previous value will
- * be overwritten. In case this function return NULL, the content of length
+ * be overwritten. In case this function returns NULL, the content of length
  * is undefined.
  * @return pointer to the next not processed byte in the given buffer or
- * NULL in case decoded vlint consists of more than 5 bytes.
+ * NULL in case decoded length consists of more than 5 bytes.
  */
 uint8_t *ber_decode_length(uint8_t *buf, uint32_t *length);
 
@@ -142,22 +132,27 @@ uint8_t *ber_decode_length(uint8_t *buf, uint32_t *length);
  * @return pointer to the next empty byte in the given buffer.
  * Will always be smaller than given buf param.
  */
-uint8_t *ber_encode_string(uint8_t *out, const char *str, uint32_t str_len);
+uint8_t *ber_encode_string_len(uint8_t *out, const char *str, uint32_t str_len);
 
 /**
- * Decode BER octet string.
+ * Decode BER octet string. This function gets length and beginning of
+ * the string directly from the input buffer.
  * Note that this function does not check against input buffer overflow.
- * It will read at most 6+strlen(str) bytes.
+ * It will read at most 6 bytes. 7th byte is beginning of the string,
+ * but it won't be dereferenced.
  * @param buf pointer to the **beginning** of the input buffer.
- * The first byte should be BER_DATA_T_INTEGER. However, this function
+ * The first byte should be BER_DATA_T_OCTET_STRING. However, this function
  * does not check against it.
- * @param str pointer to pointer to the decoded string. This function will
- * set *str to point to the beginning of the string taken directly from buf.
+ * @param str pointer to the decoded string. This function will set *str to
+ * point to the beginning of the string taken directly from buf.
  * The string is const char*, but when the buffer changes, so will this string.
+ * If this function returns NULL, the contents of *str* is undefined.
+ * @param str_len pointer where decoded strength will be written. If this
+ * function returns NULL, the contents of *str_len* is undefined.
  * @return pointer to the next not processed byte in the given buffer or
- * NULL in case decoded vlint consists of more than 5 bytes.
+ * NULL in case decoded string length is invalid.
  */
-uint8_t *ber_decode_cnstring(uint8_t *buf, const char **str, uint32_t *str_len);
+uint8_t *ber_decode_string_len_buffer(uint8_t *buf, const char **str, uint32_t *str_len);
 
 /**
  * Decode BER octet string.
@@ -176,10 +171,11 @@ uint8_t *ber_decode_cnstring(uint8_t *buf, const char **str, uint32_t *str_len);
  * is undefined.
  * @param next pointer where previous value of zero'ed byte will be written.
  * If this function returns NULL, the contents of *next* is undefined.
- * @return pointer to the next not processed byte in the given buffer or
- * NULL in case decoded vlint consists of more than 5 bytes.
+ * @return pointer to the just-zero'ed byte in the given buffer or NULL
+ * in case decoded string length is invalid. The decoding functions do not
+ * check BER type, so that returned buf can be easily decoded further.
  */
-uint8_t *ber_decode_cstring(uint8_t *buf, const char **str, uint8_t *next);
+uint8_t *ber_decode_string_buffer(uint8_t *buf, const char **str, uint8_t *next);
 
 /**
  * Decode BER octet string.
@@ -194,7 +190,7 @@ uint8_t *ber_decode_cstring(uint8_t *buf, const char **str, uint8_t *next);
  * @return pointer to the next not processed byte in the given buffer or
  * NULL in case decoded string length is invalid or malloc() failed.
  */
-uint8_t *ber_decode_astring(uint8_t *buf, char **str);
+uint8_t *ber_decode_string_alloc(uint8_t *buf, char **str);
 
 /**
  * Encode NULL in BER.
@@ -243,7 +239,7 @@ uint8_t *ber_decode_data(uint8_t *out, int count, struct ber_data *data);
 
 /**
  * Encode data in BER using fprintf-like syntax.
- * Note that this function is does not check against output buffer overflow.
+ * Note that this function does not check against output buffer overflow.
  * @param buf pointer to the **end** of the output buffer.
  * The first encoded byte will be put in buf, next one in (buf - 1), etc.
  * @param fmt c printf-like format string. It supports only format specifiers.
@@ -256,7 +252,7 @@ uint8_t *ber_fprintf(uint8_t *out, char *fmt, ...);
 
 /**
  * Decode BER data using sscanf-like syntax.
- * Note that this function is does not check against input buffer overflow.
+ * Note that this function does not check against input buffer overflow.
  * @param buf pointer to the **beginning** of the input buffer.
  * The first byte will be decoded from buf, next one from (buf + 1), etc.
  * @param fmt c printf-like format string. It supports only format specifiers.
