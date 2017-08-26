@@ -135,9 +135,13 @@ snmp_decode_msg(uint8_t *buf, uint32_t buf_len, struct snmp_msg_header *header,
 
     ++buf; /* ignore ber type, assume it's a sequence */
     buf = ber_decode_length(buf, &remaining_len);
-    if (buf == NULL || remaining_len > buf_len) {
+    if (buf == NULL || remaining_len > buf_len - (buf - out_start)) {
         return NULL;
     }
+
+    /* since remaining len starts counting from that point,
+     * reset out_start here */
+    out_start = buf;
 
     buf = ber_decode_int(buf, &header->snmp_ver);
     if (buf == NULL) {
@@ -160,15 +164,15 @@ snmp_decode_msg(uint8_t *buf, uint32_t buf_len, struct snmp_msg_header *header,
         return NULL;
     }
 
-    remaining_len -= buf - out_start;
-    remaining_len &= -!(remaining_len & 0x80000000);
-    out_start = buf;
-
     ++buf;
     buf = ber_decode_length(buf, &new_remaining_len);
     if (buf == NULL) {
         return NULL;
     }
+
+    remaining_len -= buf - out_start;
+    remaining_len &= -!(remaining_len & 0x80000000);
+    out_start = buf;
 
     if (new_remaining_len != remaining_len) {
         return NULL;
@@ -189,23 +193,31 @@ snmp_decode_msg(uint8_t *buf, uint32_t buf_len, struct snmp_msg_header *header,
         return NULL;
     }
 
+    ++buf; /* ignore ber type, assume it's a sequence */
+    buf = ber_decode_length(buf, &new_remaining_len);
+    if (buf == NULL) {
+        return NULL;
+    }
+
     remaining_len -= buf - out_start;
     remaining_len &= -!(remaining_len & 0x80000000);
     out_start = buf;
 
-    ++buf; /* ignore ber type, assume it's a sequence */
-    buf = ber_decode_length(buf, &new_remaining_len);
     if (new_remaining_len != remaining_len) {
         return NULL;
     }
 
     for (i = 0; remaining_len > 0 && i < *varbind_num; ++i) {
+        buf++; /* ignore ber type, assume it's a sequence */
+        buf = ber_decode_length(buf, &new_remaining_len);
+        if (buf == NULL) {
+            return NULL;
+        }
+
         remaining_len -= buf - out_start;
         remaining_len &= -!(remaining_len & 0x80000000);
         out_start = buf;
 
-        buf++; /* ignore ber type, assume it's a sequence */
-        buf = ber_decode_length(buf, &new_remaining_len);
         if (new_remaining_len > remaining_len) {
             return NULL;
         }
