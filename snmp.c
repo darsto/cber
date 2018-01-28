@@ -73,7 +73,6 @@ uint8_t *
 snmp_encode_msg(uint8_t *out, struct snmp_msg_header *header,
                 uint32_t varbind_num, struct snmp_varbind *varbinds)
 {
-    va_list args;
     struct snmp_varbind *varbind;
     uint8_t *out_end = out;
     uint8_t *out_prev;
@@ -128,7 +127,6 @@ uint8_t *
 snmp_decode_msg(uint8_t *buf, uint32_t buf_len, struct snmp_msg_header *header,
                 uint32_t *varbind_num, struct snmp_varbind *varbinds)
 {
-    va_list args;
     uint8_t *out_start = buf;
     uint32_t remaining_len, new_remaining_len, oid_len = SNMP_MSG_OID_LEN, i;
     uint8_t next;
