@@ -6,13 +6,13 @@
 Minimalistic ISO C99 codec for serializing data in ASN.1 BER format.
 It does not use any external dependencies.
 
-For efficiency reasons, all data structures are being encoded backwards. Decoding however, is being done as normal.
+For efficiency reasons, all data structures are being encoded backwards. Decoding is done as normal.
 
 When encoding, the library doesn't protect against output buffer overflow. If necessary, all checks should be done by the user.
 
 When decoding, the amount of input buffer overflow checks is minimal.
 
-It is required that all input/output buffers should be at least **n** bytes before coding data.
+It is required that all input/output buffers should be at least **n** bytes before coding data. Please check the internal documentation in `ber.h` for details.
 
 ## Usage
 
@@ -33,4 +33,6 @@ int main(void) {
 }
 ```
 
-For full usage example, please see snmp.c file. It is user-ready SNMPv1 codec library which under-the-hood uses BER library with all overflow checks included.
+This library should be used directly inside the application. Simply copy the `ber.c` and `ber.h` files to your project.
+
+For full usage example, please see snmp.c file. It is an SNMPv1 codec which uses BER library under the hood. It includes all error checks and is user-ready.
