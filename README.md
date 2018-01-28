@@ -18,12 +18,13 @@ It is required that all input/output buffers should be at least **n** bytes befo
 
 ```c
 int main(void) {
-    uint8_t buf[6];
+    uint8_t buf[6] = {0}; /* initialized for showcase purposes, not necessary */
     uint8_t *buf_end = buf + sizeof(buf) - 1;
     uint8_t *enc_out, *dec_out;
     uint32_t enc_num = 42, dec_num;
 
     enc_out = ber_encode_int(buf_end, enc_num);
+    /* buf == { 0, 0, 0, 0x2, 0x1, 0x2a }, enc_out == &buf[2] */
     dec_out = ber_decode_int(enc_out + 1, &dec_num);
 
     assert(dec_out == buf_end + 1);
