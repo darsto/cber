@@ -9,6 +9,7 @@
 #include <memory.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include "ber.h"
 #include "snmp.h"
 
@@ -106,8 +107,10 @@ snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
     varbind_enc.value_type = SNMP_DATA_T_NULL;
     memcpy(varbind_enc.oid, oid, sizeof(oid));
 
+    printf("# Testing SNMP msg coding\n");
+    printf("snmp_encode_msg(...)");
     enc_out = snmp_encode_msg(buf_end, &enc_header, varbinds_num, &varbind_enc);
-    hexdump("snmp_encode_msg", enc_out, buf_end - enc_out + 1);
+    hexdump("", enc_out, buf_end - enc_out + 1);
 
     dec_out = snmp_decode_msg(enc_out, (uint32_t) (buf_end - enc_out + 1), &dec_header, &varbinds_num, &varbind_dec);
     assert(dec_out == buf_end + 1);
@@ -119,6 +122,7 @@ snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
     assert(enc_header.error_index == dec_header.error_index);
     assert(varbind_enc.value_type == varbind_enc.value_type);
     assert(memcmp(varbind_enc.oid, varbind_dec.oid, sizeof(oid) / sizeof(oid[0])) == 0);
+    printf("\n");
 }
 
 void
@@ -128,17 +132,26 @@ snmp_oid_test(uint8_t *buf, uint8_t *buf_end)
     uint32_t dec_oid[13];
     uint8_t *enc_out, *dec_out;
     uint32_t oid_len = sizeof(dec_oid) / sizeof(dec_oid[0]);
+    size_t i;
 
     assert(sizeof(oid) == sizeof(dec_oid));
 
     buf_end -= 18;
 
+    printf("# Testing SNMP OID coding\n");
+    printf("snmp_encode_oid({");
+    for (i = 0; i < sizeof(oid) / sizeof(oid[0]) - 1; i++) {
+        printf("%"PRIu32", ", oid[i]);
+    }
+    printf("SNMP_MSG_OID_END})");
     enc_out = snmp_encode_oid(buf_end, oid);
+    hexdump("", enc_out + 1, buf_end - enc_out);
     dec_out = snmp_decode_oid(enc_out + 1, (uint32_t) (buf_end - enc_out), dec_oid, &oid_len);
 
     assert(dec_out == buf_end + 1);
     assert(oid_len == 13);
     assert(memcmp(oid, dec_oid, oid_len) == 0);
+    printf("\n");
 }
 
 void
@@ -148,7 +161,10 @@ ber_fprintf_test(uint8_t *buf, uint8_t *buf_end)
     uint32_t num1, num2;
     char *str = NULL;
 
+    printf("# Testing fprintf syntax-like coding.\n");
+    printf("ber_fprintf(\"%%u%%u%%s\", 64, 103, \"testing_strings_123\")");
     enc_out = ber_fprintf(buf_end, "%u%u%s", 64, 103, "testing_strings_123");
+    hexdump("", enc_out + 1, buf_end - enc_out);
     dec_out = ber_sscanf(enc_out, "%u%u%ms", &num1, &num2, &str);
 
     assert(dec_out == buf_end + 1);
@@ -157,6 +173,7 @@ ber_fprintf_test(uint8_t *buf, uint8_t *buf_end)
     assert(strcmp("testing_strings_123", str) <= 0);
 
     free(str);
+    printf("\n");
 }
 
 void
@@ -166,12 +183,16 @@ ber_vlint_test(uint8_t *buf, uint8_t *buf_end)
     uint32_t values[] = { 42, 67, 128, 129, 179, 255, 256, 258, 400, 4096, 65536 };
     uint32_t i, num;
 
+    printf("# Testing variable-length-integer coding.\n");
     for (i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
+        printf("ber_encode_vlint(%"PRIu32")", values[i]);
         enc_out = ber_encode_vlint(buf_end, values[i]);
+        hexdump("", enc_out + 1, buf_end - enc_out);
         dec_out = ber_decode_vlint(enc_out + 1, &num);
         assert(num == values[i]);
         assert(dec_out == buf_end + 1);
     }
+    printf("\n");
 }
 
 void
@@ -181,12 +202,16 @@ ber_int_test(uint8_t *buf, uint8_t *buf_end)
     uint32_t values[] = { 42, 67, 128, 129, 179, 255, 256, 258, 400, 4096, 65536 };
     uint32_t i, num;
 
+    printf("# Testing BER integer coding\n");
     for (i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
+        printf("ber_encode_int(%"PRIu32")", values[i]);
         enc_out = ber_encode_int(buf_end, values[i]);
+        hexdump("", enc_out + 1, buf_end - enc_out);
         dec_out = ber_decode_int(enc_out + 1, &num);
         assert(num == values[i]);
         assert(dec_out == buf_end + 1);
     }
+    printf("\n");
 }
 
 void
@@ -196,12 +221,16 @@ ber_length_test(uint8_t *buf, uint8_t *buf_end)
     uint32_t values[] = { 42, 67, 128, 129, 179, 255, 256, 258, 400, 4096, 65536 };
     uint32_t i, num;
 
+    printf("# Testing BER length coding\n");
     for (i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
+        printf("ber_encode_length(%"PRIu32")", values[i]);
         enc_out = ber_encode_length(buf_end, values[i]);
+        hexdump("", enc_out + 1, buf_end - enc_out);
         dec_out = ber_decode_length(enc_out + 1, &num);
         assert(num == values[i]);
         assert(dec_out == buf_end + 1);
     }
+    printf("\n");
 }
 
 void
@@ -214,7 +243,9 @@ ber_string_test(uint8_t *buf, uint8_t *buf_end)
     uint8_t next;
     uint32_t i, enc_method, str_len;
 
+    printf("# Testing BER string coding\n");
     for (i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
+        printf("ber_encode_string(\"%s\")", values[i]);
         for (enc_method = 0; enc_method < 2; ++enc_method) {
             if (enc_method == 0) {
                 enc_out = ber_encode_string(buf_end, values[i]);
@@ -238,7 +269,9 @@ ber_string_test(uint8_t *buf, uint8_t *buf_end)
             assert(strncmp(str, values[i], str_len) == 0);
             assert(dec_out == buf_end + 1);
         }
+        hexdump("", enc_out + 1, buf_end - enc_out);
     }
+    printf("\n");
 }
 
 int
