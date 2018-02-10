@@ -38,6 +38,10 @@ This library should be used directly inside the application. Simply copy the `be
 
 For full usage example, please see snmp.c file. It is an SNMPv1 codec which uses BER library under the hood. It includes all error checks and is user-ready.
 
+## Benchmarks
+
+See performance comparisons in [BENCHMARK.md](BENCHMARK.md).
+
 ## Running tests
 
 This library comes with a simple unit tests that can be run as following.
