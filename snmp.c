@@ -245,6 +245,10 @@ snmp_decode_msg(uint8_t *buf, uint32_t buf_len, struct snmp_msg_header *header,
         if (buf == NULL) {
             return NULL;
         }
+
+        remaining_len -= buf - out_start;
+        remaining_len &= -!(remaining_len & 0x80000000);
+        out_start = buf;
     }
 
     return buf;
