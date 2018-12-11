@@ -94,10 +94,10 @@ snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
     struct snmp_msg_header enc_header = {0};
     struct snmp_msg_header dec_header = {0};
     struct snmp_varbind varbind_enc = {0};
-    struct snmp_varbind varbind_dec = {0};
+    struct snmp_varbind varbind_dec[2] = {0};
     uint32_t oid[] = { 1, 3, 6, 1, 4, 1, 26609, 2, 1, 1, 2, 0, SNMP_MSG_OID_END };
     uint8_t *enc_out, *dec_out;
-    uint32_t varbinds_num = 1;
+    uint32_t varbinds_num;
 
     enc_header.snmp_ver = 0;
     enc_header.community = "private";
@@ -109,10 +109,11 @@ snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
 
     printf("# Testing SNMP msg coding\n");
     printf("snmp_encode_msg(...)");
-    enc_out = snmp_encode_msg(buf_end, &enc_header, varbinds_num, &varbind_enc);
+    enc_out = snmp_encode_msg(buf_end, &enc_header, 1, &varbind_enc);
     hexdump("", enc_out, buf_end - enc_out + 1);
 
-    dec_out = snmp_decode_msg(enc_out, (uint32_t) (buf_end - enc_out + 1), &dec_header, &varbinds_num, &varbind_dec);
+    varbinds_num = 2;
+    dec_out = snmp_decode_msg(enc_out, (uint32_t) (buf_end - enc_out + 1), &dec_header, &varbinds_num, varbind_dec);
     assert(dec_out == buf_end + 1);
     assert(enc_header.snmp_ver == dec_header.snmp_ver);
     assert(strcmp(enc_header.community, dec_header.community) == 0);
@@ -120,8 +121,9 @@ snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
     assert(enc_header.request_id == dec_header.request_id);
     assert(enc_header.error_status == dec_header.error_status);
     assert(enc_header.error_index == dec_header.error_index);
+    assert(varbinds_num == 1);
     assert(varbind_enc.value_type == varbind_enc.value_type);
-    assert(memcmp(varbind_enc.oid, varbind_dec.oid, sizeof(oid) / sizeof(oid[0])) == 0);
+    assert(memcmp(varbind_enc.oid, varbind_dec[0].oid, sizeof(oid) / sizeof(oid[0])) == 0);
     printf("\n");
 }
 

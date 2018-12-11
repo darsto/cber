@@ -251,5 +251,7 @@ snmp_decode_msg(uint8_t *buf, uint32_t buf_len, struct snmp_msg_header *header,
         out_start = buf;
     }
 
+    *varbind_num = i;
+
     return buf;
 }
