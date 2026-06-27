@@ -24,10 +24,10 @@ to_printable(int n)
 int
 hexdump_line(const char *data, const char *data_start, const char *data_end)
 {
-    static char buf[256] = {0};
+    static char buf[256] = { 0 };
 
     char *buf_ptr = buf;
-    int relative_addr = (int) (data - data_start);
+    int relative_addr = (int)(data - data_start);
     size_t i, j;
 
     for (i = 0; i < 2; ++i) {
@@ -48,14 +48,14 @@ hexdump_line(const char *data, const char *data_start, const char *data_end)
     for (j = 0; j < 8; ++j) {
         for (i = 0; i < 2; ++i) {
             if (data < data_end) {
-                buf[10 + 5 * 8 + 4 + i + 2*j] = (char) (isprint(*data) ? *data : '.');
+                buf[10 + 5 * 8 + 4 + i + 2 * j] = (char)(isprint(*data) ? *data : '.');
 
                 buf_ptr[i * 2] = to_printable(*data >> 4);
                 buf_ptr[i * 2 + 1] = to_printable(*data);
 
                 ++data;
             } else {
-                buf[10 + 5 * 8 + 4 + i + 2*j] = 0;
+                buf[10 + 5 * 8 + 4 + i + 2 * j] = 0;
 
                 buf_ptr[i * 2] = ' ';
                 buf_ptr[i * 2 + 1] = ' ';
@@ -71,7 +71,7 @@ hexdump_line(const char *data, const char *data_start, const char *data_end)
 
     printf("%s\n", buf);
 
-    return (int) (i * j);
+    return (int)(i * j);
 }
 
 void
@@ -91,10 +91,10 @@ hexdump(const char *title, const void *data, size_t len)
 void
 snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
 {
-    struct snmp_msg_header enc_header = {0};
-    struct snmp_msg_header dec_header = {0};
-    struct snmp_varbind varbind_enc = {0};
-    struct snmp_varbind varbind_dec[2] = {0};
+    struct snmp_msg_header enc_header = { 0 };
+    struct snmp_msg_header dec_header = { 0 };
+    struct snmp_varbind varbind_enc = { 0 };
+    struct snmp_varbind varbind_dec[2] = { 0 };
     uint32_t oid[] = { 1, 3, 6, 1, 4, 1, 26609, 2, 1, 1, 2, 0, SNMP_MSG_OID_END };
     uint8_t *enc_out, *dec_out;
     uint32_t varbinds_num;
@@ -113,7 +113,7 @@ snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
     hexdump("", enc_out, buf_end - enc_out + 1);
 
     varbinds_num = 2;
-    dec_out = snmp_decode_msg(enc_out, (uint32_t) (buf_end - enc_out + 1), &dec_header, &varbinds_num, varbind_dec);
+    dec_out = snmp_decode_msg(enc_out, (uint32_t)(buf_end - enc_out + 1), &dec_header, &varbinds_num, varbind_dec);
     assert(dec_out == buf_end + 1);
     assert(enc_header.snmp_ver == dec_header.snmp_ver);
     assert(strcmp(enc_header.community, dec_header.community) == 0);
@@ -143,12 +143,12 @@ snmp_oid_test(uint8_t *buf, uint8_t *buf_end)
     printf("# Testing SNMP OID coding\n");
     printf("snmp_encode_oid({");
     for (i = 0; i < sizeof(oid) / sizeof(oid[0]) - 1; i++) {
-        printf("%"PRIu32", ", oid[i]);
+        printf("%" PRIu32 ", ", oid[i]);
     }
     printf("SNMP_MSG_OID_END})");
     enc_out = snmp_encode_oid(buf_end, oid);
     hexdump("", enc_out + 1, buf_end - enc_out);
-    dec_out = snmp_decode_oid(enc_out + 1, (uint32_t) (buf_end - enc_out), dec_oid, &oid_len);
+    dec_out = snmp_decode_oid(enc_out + 1, (uint32_t)(buf_end - enc_out), dec_oid, &oid_len);
 
     assert(dec_out == buf_end + 1);
     assert(oid_len == 13);
@@ -187,7 +187,7 @@ ber_vlint_test(uint8_t *buf, uint8_t *buf_end)
 
     printf("# Testing variable-length-integer coding.\n");
     for (i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
-        printf("ber_encode_vlint(%"PRIu32")", values[i]);
+        printf("ber_encode_vlint(%" PRIu32 ")", values[i]);
         enc_out = ber_encode_vlint(buf_end, values[i]);
         hexdump("", enc_out + 1, buf_end - enc_out);
         dec_out = ber_decode_vlint(enc_out + 1, &num);
@@ -206,7 +206,7 @@ ber_int_test(uint8_t *buf, uint8_t *buf_end)
 
     printf("# Testing BER integer coding\n");
     for (i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
-        printf("ber_encode_int(%"PRIu32")", values[i]);
+        printf("ber_encode_int(%" PRIu32 ")", values[i]);
         enc_out = ber_encode_int(buf_end, values[i]);
         hexdump("", enc_out + 1, buf_end - enc_out);
         dec_out = ber_decode_int(enc_out + 1, &num);
@@ -225,7 +225,7 @@ ber_length_test(uint8_t *buf, uint8_t *buf_end)
 
     printf("# Testing BER length coding\n");
     for (i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {
-        printf("ber_encode_length(%"PRIu32")", values[i]);
+        printf("ber_encode_length(%" PRIu32 ")", values[i]);
         enc_out = ber_encode_length(buf_end, values[i]);
         hexdump("", enc_out + 1, buf_end - enc_out);
         dec_out = ber_decode_length(enc_out + 1, &num);
@@ -251,7 +251,7 @@ ber_string_test(uint8_t *buf, uint8_t *buf_end)
         for (enc_method = 0; enc_method < 2; ++enc_method) {
             if (enc_method == 0) {
                 enc_out = ber_encode_string(buf_end, values[i]);
-            } else  {
+            } else {
                 enc_out = ber_encode_string_len(buf_end, values[i], strlen(values[i]));
             }
 

@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-#define SNMP_MSG_OID_END ((uint32_t) -1)
+#define SNMP_MSG_OID_END ((uint32_t)-1)
 #define SNMP_MSG_OID_LEN 32
 
 /** BER data types used by this SNMP library */
@@ -17,7 +17,7 @@ enum snmp_data_type {
     SNMP_DATA_T_INTEGER = 0x02,
     SNMP_DATA_T_OCTET_STRING = 0x04,
     SNMP_DATA_T_NULL = 0x05,
-    
+
     SNMP_DATA_T_OBJECT = 0x06,
     SNMP_DATA_T_SEQUENCE = 0x30,
 
