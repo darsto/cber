@@ -276,8 +276,8 @@ ber_string_test(uint8_t *buf, uint8_t *buf_end)
     printf("\n");
 }
 
-int
-main(void)
+static int
+run_tests(void)
 {
     uint8_t buf[1024];
     uint8_t *buf_end = buf + sizeof(buf) - 1;
@@ -298,4 +298,97 @@ main(void)
     snmp_msg_test(buf, buf_end);
 
     return 0;
+}
+
+#define AFL_MAX_INPUT 4096
+#define AFL_PADDING 64
+#define AFL_VARBINDS 8
+
+static int
+ber_string_len_fits(uint8_t *buf, size_t buf_len, uint32_t *str_len)
+{
+    uint8_t *str;
+
+    if (buf_len < 2) {
+        return 0;
+    }
+
+    str = ber_decode_length(buf + 1, str_len);
+    if (str == NULL || str < buf) {
+        return 0;
+    }
+
+    return *str_len <= AFL_MAX_INPUT + AFL_PADDING - (size_t)(str - buf);
+}
+
+static void
+afl_ber_decode(uint8_t *buf, size_t len)
+{
+    const char *str;
+    char *alloc_str = NULL;
+    uint32_t num, str_len;
+    uint8_t next;
+
+    (void)ber_decode_vlint(buf, &num);
+    (void)ber_decode_int(buf, &num);
+    (void)ber_decode_length(buf, &num);
+    (void)ber_decode_null(buf);
+
+    if (ber_string_len_fits(buf, len, &str_len)) {
+        (void)ber_decode_string_len_buffer(buf, &str, &str_len);
+        (void)ber_decode_string_buffer(buf, &str, AFL_MAX_INPUT, &next);
+        (void)ber_decode_string_alloc(buf, &alloc_str, AFL_MAX_INPUT);
+        free(alloc_str);
+    }
+}
+
+static void
+afl_snmp_decode(uint8_t *buf, size_t len)
+{
+    struct snmp_msg_header header = { 0 };
+    struct snmp_varbind varbinds[AFL_VARBINDS] = { 0 };
+    uint8_t msg[AFL_MAX_INPUT + AFL_PADDING] = { 0 };
+    uint32_t oid[SNMP_MSG_OID_LEN] = { 0 };
+    uint32_t oid_len;
+    uint32_t varbind_num;
+
+    oid_len = SNMP_MSG_OID_LEN;
+    (void)snmp_decode_oid(buf, (uint32_t)len, oid, &oid_len);
+
+    memcpy(msg, buf, len);
+    varbind_num = AFL_VARBINDS;
+    (void)snmp_decode_msg(msg, (uint32_t)len, &header, &varbind_num, varbinds);
+}
+
+static int
+run_afl_target(const char *target)
+{
+    uint8_t buf[AFL_MAX_INPUT + AFL_PADDING] = { 0 };
+    size_t len;
+
+    len = fread(buf, 1, AFL_MAX_INPUT, stdin);
+
+    if (strcmp(target, "afl-ber-decode") == 0) {
+        afl_ber_decode(buf, len);
+    } else if (strcmp(target, "afl-snmp-decode") == 0) {
+        afl_snmp_decode(buf, len);
+    } else {
+        fprintf(stderr, "unknown TEST_TARGET: %s\n", target);
+        return 1;
+    }
+
+    return 0;
+}
+
+int
+main(void)
+{
+    const char *target;
+
+    target = getenv("TEST_TARGET");
+    if (target == NULL || strcmp(target, "test") == 0) {
+        return run_tests();
+    }
+
+    return run_afl_target(target);
 }

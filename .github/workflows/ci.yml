@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y afl++
+
+      - name: Unit tests
+        run: |
+          make
+          ./ber-test
+
+      - name: Fuzz tests
+        run: make afl
+
+      - name: Check afl results
+        run: |
+          crashes="$(find -path 'afl-tmp/*/crashes/id:*' -type f -print 2>/dev/null || true)"
+          if [ -n "$crashes" ]; then
+            printf 'AFL found crashes:\n%s\n' "$crashes"
+            exit 1
+          fi

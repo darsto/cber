@@ -1,0 +1,4 @@
+afl-tmp
+ber-test
+afl-test
+*.o
