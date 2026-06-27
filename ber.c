@@ -14,11 +14,11 @@
 uint8_t *
 ber_encode_vlint(uint8_t *out, uint32_t num)
 {
-    *out-- = (uint8_t) (num & 0x7F);
+    *out-- = (uint8_t)(num & 0x7F);
     num >>= 7;
 
     while (num) {
-        *out-- = (uint8_t) ((num & 0x7F) | 0x80);
+        *out-- = (uint8_t)((num & 0x7F) | 0x80);
         num >>= 7;
     }
 
@@ -30,7 +30,7 @@ ber_decode_vlint(uint8_t *buf, uint32_t *num)
 {
     int i;
 
-    *num = (uint32_t) (*buf & 0x7F);
+    *num = (uint32_t)(*buf & 0x7F);
     for (i = 0; i < 4; ++i) {
         if ((*buf++ & 0x80) == 0) {
             return buf;
@@ -52,11 +52,11 @@ ber_encode_int(uint8_t *out, uint32_t num)
     uint8_t len;
 
     do {
-        *out-- = (uint8_t) (num & 0xFF);
+        *out-- = (uint8_t)(num & 0xFF);
         num >>= 8;
     } while (num);
 
-    len = (uint8_t) ((out_end - out) & 0xFF);
+    len = (uint8_t)((out_end - out) & 0xFF);
     *out-- = len;
     *out-- = BER_DATA_T_INTEGER;
 
@@ -74,10 +74,10 @@ ber_decode_int(uint8_t *buf, uint32_t *num)
         return NULL; /* won't fit in uint32_t */
     }
 
-    *num = (uint32_t) (*buf++ & 0xFF);
+    *num = (uint32_t)(*buf++ & 0xFF);
     for (i = 1; i < len; ++i) {
         *num <<= 8;
-        *num |= (uint8_t) (*buf++ & 0xFF);
+        *num |= (uint8_t)(*buf++ & 0xFF);
     }
 
     return buf;
@@ -89,16 +89,16 @@ ber_encode_length(uint8_t *out, uint32_t length)
     uint8_t *out_end = out;
 
     if (length < 0x80) {
-        *out-- = (uint8_t) length;
+        *out-- = (uint8_t)length;
         return out;
     }
 
     while (length) {
-        *out-- = (uint8_t) (length & 0xFF);
+        *out-- = (uint8_t)(length & 0xFF);
         length >>= 8;
     }
 
-    *out = (uint8_t) ((out_end - out) | 0x80);
+    *out = (uint8_t)((out_end - out) | 0x80);
     out--;
 
     return out;
@@ -110,16 +110,16 @@ ber_decode_length(uint8_t *buf, uint32_t *length)
     uint8_t i, length_bytes;
 
     if ((*buf & 0x80) == 0) {
-        *length = (uint32_t) *buf++;
+        *length = (uint32_t)*buf++;
         return buf;
     }
 
-    length_bytes = (uint8_t) (*buf++ & 0x7F);
+    length_bytes = (uint8_t)(*buf++ & 0x7F);
     if (length_bytes > 4) {
         return NULL; /* won't fit in uint32_t */
     }
 
-    *length = (uint32_t) *buf++;
+    *length = (uint32_t)*buf++;
     for (i = 1; i < length_bytes; ++i) {
         *length <<= 8;
         *length |= *buf++;
@@ -135,7 +135,7 @@ ber_encode_string_len(uint8_t *out, const char *str, uint32_t str_len)
 
     str += str_len - 1;
     for (i = 0; i < str_len; ++i) {
-        *out-- = (uint8_t) *str--;
+        *out-- = (uint8_t)*str--;
     }
 
     out = ber_encode_length(out, str_len);
@@ -147,7 +147,7 @@ ber_encode_string_len(uint8_t *out, const char *str, uint32_t str_len)
 uint8_t *
 ber_encode_string(uint8_t *out, const char *str)
 {
-    uint32_t str_len = (uint32_t) strlen(str);
+    uint32_t str_len = (uint32_t)strlen(str);
 
     return ber_encode_string_len(out, str, str_len);
 }
@@ -155,13 +155,13 @@ ber_encode_string(uint8_t *out, const char *str)
 uint8_t *
 ber_decode_string_len_buffer(uint8_t *buf, const char **str, uint32_t *str_len)
 {
-    buf++;  /* ignore ber type, assume it's string */
+    buf++; /* ignore ber type, assume it's string */
     buf = ber_decode_length(buf, str_len);
     if (buf == NULL) {
         return NULL;
     }
 
-    *str = (const char *) buf;
+    *str = (const char *)buf;
 
     return buf + *str_len;
 }
@@ -187,7 +187,7 @@ ber_decode_string_alloc(uint8_t *buf, char **str, uint32_t maxlen)
 {
     uint32_t str_len;
 
-    buf++;  /* ignore ber type, assume it's string */
+    buf++; /* ignore ber type, assume it's string */
     buf = ber_decode_length(buf, &str_len);
     if (buf == NULL || str_len > maxlen) {
         return NULL;
@@ -267,7 +267,7 @@ ber_fprintf(uint8_t *out, char *fmt, ...)
                 break;
             case 's':
                 out = ber_encode_string_len(out, args_ptr->value.s,
-                                            (uint32_t) strlen(args_ptr->value.s));
+                                            (uint32_t)strlen(args_ptr->value.s));
                 break;
             case 'n':
                 out = ber_encode_null(out);
@@ -276,7 +276,7 @@ ber_fprintf(uint8_t *out, char *fmt, ...)
                 return NULL;
         }
     }
-    
+
     return out + 1;
 }
 
@@ -319,4 +319,3 @@ ber_sscanf(uint8_t *buf, char *fmt, ...)
 
     return buf;
 }
-

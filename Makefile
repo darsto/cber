@@ -10,6 +10,8 @@ LDFLAGS =
 SOURCES = snmp.c ber.c main.c
 OBJECTS = $(SOURCES:.c=.o)
 EXECUTABLE = ber-test
+CLANG_FORMAT = clang-format
+FORMAT_SOURCES = $(SOURCES) ber.h snmp.h
 
 all: $(SOURCES) $(EXECUTABLE)
 
@@ -19,7 +21,10 @@ $(EXECUTABLE): $(OBJECTS)
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
 
-.PHONY: clean
+.PHONY: clean fmt
 
 clean:
 	rm -f $(OBJECTS) $(EXECUTABLE)
+
+fmt:
+	$(CLANG_FORMAT) -i $(FORMAT_SOURCES)
