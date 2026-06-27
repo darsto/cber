@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+rm -rf "afl-tmp"
+IN_DIR="afl-tmp/input"
+mkdir -p "$IN_DIR/ber" "$IN_DIR/snmp"
+
+cd "$IN_DIR"
+echo -ne '\x7f' > "ber/vlint-short"
+echo -ne '\x81\x00' > "ber/vlint-long"
+echo -ne '\x02\x04\x7f\xff\xff\xff' > "ber/int-large"
+echo -ne '\x04\x03abc' > "ber/string-short"
+echo -ne '\x04\x81\x03abc' > "ber/string-long-form"
+
+echo -ne '\x30\x0c\x02\x01\x00\x04\x00\xa0\x05\x02\x01\x01\x02\x01\x00\x02\x01\x00\x30\x00' > "snmp/get-empty"
+echo -ne '\x30\x2a\x02\x01\x00\x04\x06public\xa0\x1d\x02\x01\x01\x02\x01\x00\x02\x01\x00\x30\x10\x30\x0e\x06\x08\x2b\x06\x01\x04\x01\x81\xcf\x71\x05\x00' > "snmp/get-null-varbind"
