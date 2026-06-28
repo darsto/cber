@@ -52,6 +52,7 @@ snmp_decode_oid(uint8_t *buf, uint32_t buf_len, uint32_t *oid, uint32_t *oid_len
     first = div(*buf++, 40);
     *oid++ = (uint32_t)first.quot;
     *oid++ = (uint32_t)first.rem;
+    *oid_len -= 2;
 
     while (buf < buf_end) {
         --(*oid_len);
