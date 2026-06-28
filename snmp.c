@@ -60,6 +60,10 @@ snmp_decode_oid(uint8_t *buf, uint32_t buf_len, uint32_t *oid, uint32_t *oid_len
         }
 
         buf = ber_decode_vlint(buf, oid);
+        if (buf == NULL) {
+            return NULL;
+        }
+
         ++oid;
     }
 
