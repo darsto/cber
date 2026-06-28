@@ -43,7 +43,7 @@ snmp_decode_oid(uint8_t *buf, uint32_t buf_len, uint32_t *oid, uint32_t *oid_len
 
     buf++; /* ignore ber type, assume it's an object */
     buf = ber_decode_length(buf, &len);
-    if (buf == NULL || len + 2 > buf_len) {
+    if (buf == NULL || len + 2 + 5 /* 5 bytes of vlint */ > buf_len) {
         return NULL;
     }
 
@@ -53,7 +53,7 @@ snmp_decode_oid(uint8_t *buf, uint32_t buf_len, uint32_t *oid, uint32_t *oid_len
     *oid++ = (uint32_t)first.quot;
     *oid++ = (uint32_t)first.rem;
 
-    while (buf != buf_end) {
+    while (buf < buf_end) {
         --(*oid_len);
         if (*oid_len == 0) {
             return NULL;
@@ -137,7 +137,7 @@ snmp_decode_msg(uint8_t *buf, uint32_t buf_len, struct snmp_msg_header *header,
 
     ++buf; /* ignore ber type, assume it's a sequence */
     buf = ber_decode_length(buf, &remaining_len);
-    if (buf == NULL || remaining_len > buf_len - (buf - out_start)) {
+    if (buf == NULL || remaining_len + 5 > buf_len - (buf - out_start)) {
         return NULL;
     }
 
@@ -224,7 +224,7 @@ snmp_decode_msg(uint8_t *buf, uint32_t buf_len, struct snmp_msg_header *header,
             return NULL;
         }
 
-        buf = snmp_decode_oid(buf, new_remaining_len, varbinds[i].oid, &oid_len);
+        buf = snmp_decode_oid(buf, new_remaining_len + 5, varbinds[i].oid, &oid_len);
         if (buf == NULL) {
             return NULL;
         }

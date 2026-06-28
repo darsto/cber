@@ -107,13 +107,15 @@ snmp_msg_test(uint8_t *buf, uint8_t *buf_end)
     varbind_enc.value_type = SNMP_DATA_T_NULL;
     memcpy(varbind_enc.oid, oid, sizeof(oid));
 
+    buf_end -= 5;
+
     printf("# Testing SNMP msg coding\n");
     printf("snmp_encode_msg(...)");
     enc_out = snmp_encode_msg(buf_end, &enc_header, 1, &varbind_enc);
     hexdump("", enc_out, buf_end - enc_out + 1);
 
     varbinds_num = 2;
-    dec_out = snmp_decode_msg(enc_out, (uint32_t)(buf_end - enc_out + 1), &dec_header, &varbinds_num, varbind_dec);
+    dec_out = snmp_decode_msg(enc_out, (uint32_t)(buf_end + 5 - enc_out + 1), &dec_header, &varbinds_num, varbind_dec);
     assert(dec_out == buf_end + 1);
     assert(enc_header.snmp_ver == dec_header.snmp_ver);
     assert(strcmp(enc_header.community, dec_header.community) == 0);
@@ -138,7 +140,7 @@ snmp_oid_test(uint8_t *buf, uint8_t *buf_end)
 
     assert(sizeof(oid) == sizeof(dec_oid));
 
-    buf_end -= 18;
+    buf_end -= 18 + 5;
 
     printf("# Testing SNMP OID coding\n");
     printf("snmp_encode_oid({");
@@ -148,7 +150,7 @@ snmp_oid_test(uint8_t *buf, uint8_t *buf_end)
     printf("SNMP_MSG_OID_END})");
     enc_out = snmp_encode_oid(buf_end, oid);
     hexdump("", enc_out + 1, buf_end - enc_out);
-    dec_out = snmp_decode_oid(enc_out + 1, (uint32_t)(buf_end - enc_out), dec_oid, &oid_len);
+    dec_out = snmp_decode_oid(enc_out + 1, (uint32_t)(buf_end + 5 - enc_out), dec_oid, &oid_len);
 
     assert(dec_out == buf_end + 1);
     assert(oid_len == 13);
@@ -301,7 +303,6 @@ run_tests(void)
 }
 
 #define AFL_MAX_INPUT 4096
-#define AFL_PADDING 64
 #define AFL_VARBINDS 8
 
 static int
@@ -318,7 +319,7 @@ ber_string_len_fits(uint8_t *buf, size_t buf_len, uint32_t *str_len)
         return 0;
     }
 
-    return *str_len <= AFL_MAX_INPUT + AFL_PADDING - (size_t)(str - buf);
+    return *str_len <= AFL_MAX_INPUT - (size_t)(str - buf);
 }
 
 static void
@@ -347,7 +348,7 @@ afl_snmp_decode(uint8_t *buf, size_t len)
 {
     struct snmp_msg_header header = { 0 };
     struct snmp_varbind varbinds[AFL_VARBINDS] = { 0 };
-    uint8_t msg[AFL_MAX_INPUT + AFL_PADDING] = { 0 };
+    uint8_t msg[AFL_MAX_INPUT] = { 0 };
     uint32_t oid[SNMP_MSG_OID_LEN] = { 0 };
     uint32_t oid_len;
     uint32_t varbind_num;
@@ -363,7 +364,7 @@ afl_snmp_decode(uint8_t *buf, size_t len)
 static int
 run_afl_target(const char *target)
 {
-    uint8_t buf[AFL_MAX_INPUT + AFL_PADDING] = { 0 };
+    uint8_t buf[AFL_MAX_INPUT] = { 0 };
     size_t len;
 
     len = fread(buf, 1, AFL_MAX_INPUT, stdin);

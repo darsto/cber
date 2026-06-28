@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -std=gnu99 -pedantic -Wall -Wextra \
+CFLAGS = -std=gnu99 -pedantic -g -O0 -Wall -Wextra \
     -Werror -Wno-missing-braces -Wno-missing-field-initializers \
     -Wno-unused-variable -Wno-unused-parameter -Wformat=2 -Wswitch-default \
     -Wcast-align -Wpointer-arith -Wbad-function-cast \
@@ -38,7 +38,7 @@ FUZZ_ENV = AFL_NO_UI=1 AFL_SKIP_CPUFREQ=1 AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=
 
 $(AFL_EXECUTABLE): main.c snmp.c ber.c
 	./afl-seeds.sh
-	AFL_USE_ASAN=1 AFL_USE_UBSAN=1 afl-gcc $(CFLAGS) main.c snmp.c ber.c -o $(AFL_EXECUTABLE)
+	AFL_USE_ASAN=1 AFL_USE_UBSAN=1 afl-gcc $(CFLAGS) -g -O0 main.c snmp.c ber.c -o $(AFL_EXECUTABLE)
 
 afl-%-decode afl-%-encode: $(AFL_EXECUTABLE)
 	$(FUZZ_ENV) TEST_TARGET=$@ afl-fuzz \
